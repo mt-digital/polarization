@@ -40,9 +40,22 @@ class TestCalculations(unittest.TestCase):
 
     def test_raw_state_update(self):
 
-        assert raw_opinion_update_vec(
-                self.a1_2, [self.a2_2, self.a3_2, self.a4_2]
-            ) == np.array([])
+        num_neighbors_fac = 1.0 / (2.0 * 3)
+        w_12 = weight(self.a1_2, self.a2_2)
+        w_13 = weight(self.a1_2, self.a3_2)
+        w_14 = weight(self.a1_2, self.a4_2)
+
+        S = (w_12*np.array([.5, -.3])) + \
+            (w_13*np.array([.3, .1])) + \
+            (w_14*np.array([.3, -.1]))
+
+        expected = num_neighbors_fac * S
+        calculated = raw_opinion_update_vec(
+            self.a1_2, [self.a2_2, self.a3_2, self.a4_2]
+        )
+        assert (calculated == expected).all(), 'calc: {}\nexpec: {}'.format(
+            calculated, expected
+        )
 
     def test_scaled_state_update(self):
 

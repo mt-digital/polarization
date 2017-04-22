@@ -80,6 +80,6 @@ def raw_opinion_update_vec(agent, neighbors):
     factor = (1.0 / (2.0 * len(neighbors)))
 
     return factor * np.sum(
-        weight(agent, neighbor) * (agent.opinions - neighbor.opinions)
+        weight(agent, neighbor) * (neighbor.opinions - agent.opinions)
         for neighbor in neighbors
     )
