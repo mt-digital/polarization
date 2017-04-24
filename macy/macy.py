@@ -83,3 +83,15 @@ def raw_opinion_update_vec(agent, neighbors):
         weight(agent, neighbor) * (neighbor.opinions - agent.opinions)
         for neighbor in neighbors
     )
+
+
+def opinion_update_vec(agent, neighbors):
+
+    raw_update_vec = raw_opinion_update_vec(agent, neighbors)
+
+    return agent.opinions + (np.multiply(1 - agent.opinions, raw_update_vec))
+
+
+def polarization(network):
+
+    pass

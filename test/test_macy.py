@@ -1,7 +1,7 @@
 import numpy as np
 import unittest
 
-from macy import Agent, weight, raw_opinion_update_vec
+from macy import Agent, weight, raw_opinion_update_vec, opinion_update_vec
 
 
 class TestCalculations(unittest.TestCase):
@@ -53,13 +53,29 @@ class TestCalculations(unittest.TestCase):
         calculated = raw_opinion_update_vec(
             self.a1_2, [self.a2_2, self.a3_2, self.a4_2]
         )
+
         assert (calculated == expected).all(), 'calc: {}\nexpec: {}'.format(
             calculated, expected
         )
 
     def test_scaled_state_update(self):
+        neighbors = [self.a2_2, self.a3_2, self.a4_2]
 
-        assert False
+        raw_update_vec = raw_opinion_update_vec(self.a1_2, neighbors)
+
+        expected_0 = \
+            self.a1_2.opinions[0] + \
+            ((1 - self.a1_2.opinions[0]) * raw_update_vec[0])
+
+        expected_1 = \
+            self.a1_2.opinions[1] + \
+            ((1 - self.a1_2.opinions[1]) * raw_update_vec[1])
+
+        calculated = opinion_update_vec(
+            self.a1_2, neighbors
+        )
+
+        assert (calculated == np.array([expected_0, expected_1])).all()
 
     def test_polarization(self):
 
