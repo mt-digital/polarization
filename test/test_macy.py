@@ -1,7 +1,10 @@
+import networkx as nx
 import numpy as np
 import unittest
 
-from macy import Agent, weight, raw_opinion_update_vec, opinion_update_vec
+from macy import (
+    Agent, weight, raw_opinion_update_vec, opinion_update_vec, polarization
+)
 
 
 class TestCalculations(unittest.TestCase):
@@ -79,4 +82,35 @@ class TestCalculations(unittest.TestCase):
 
     def test_polarization(self):
 
-        assert False
+        d = np.zeros((4, 4))
+
+        d[0, 1] = .4     ; d[0, 2] = .2     ; d[0, 3] = .2
+        d[1, 0] = d[0, 1]; d[1, 2] = .3     ; d[1, 3] = .2
+        d[2, 0] = d[0, 2]; d[2, 1] = d[1, 2]; d[2, 3] = .1
+        d[3, 0] = d[0, 3]; d[3, 1] = d[1, 3]; d[3, 2] = d[2, 3]
+
+        d_mean = d.sum() / (4 * 3)
+
+        d_sub_mean = d - d_mean
+        for i in range(4):
+            d_sub_mean[i, i] = 0.0
+
+        print(d_sub_mean)
+        expected = np.sum((d_sub_mean)**2) / (4 * 3)
+
+        g = nx.Graph()
+        a1 = self.a1_2
+        a2 = self.a2_2
+        a3 = self.a3_2
+        a4 = self.a4_2
+
+        g.add_edges_from([
+            (e1, e2, {'weight': weight(e1, e2)})
+            for e1, e2 in [(a1, a2), (a1, a4), (a2, a3), (a3, a4)]
+        ])
+
+        calculated = polarization(g)
+
+        assert expected == calculated, 'calc: {}\nexpec: {}'.format(
+            calculated, expected
+        )

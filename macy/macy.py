@@ -93,5 +93,35 @@ def opinion_update_vec(agent, neighbors):
 
 
 def polarization(network):
+    '''
+    Implementing Equation 3
+    '''
 
-    pass
+    nodes = network.nodes()
+
+    L = len(nodes)
+    distances = np.zeros((L, L))
+
+    for i in range(L):
+        for j in range(L):
+            distances[i, j] = distance(nodes[i], nodes[j])
+            print('i={}, j={}, distance={}'.format(i, j, distances[i, j]))
+
+    d_expected = distances.sum() / (L*(L-1))
+
+    print(d_expected)
+
+    d_sub_mean = (distances - d_expected)
+    for i in range(L):
+        d_sub_mean[i, i] = 0.0
+
+    d_sub_mean_sq = np.sum(np.power(d_sub_mean, 2))
+
+    return (1/(L*(L-1))) * d_sub_mean_sq
+
+
+def distance(agent_1, agent_2):
+
+    n_ops = len(agent_1.opinions)
+    print(n_ops)
+    return (1.0 / n_ops) * np.sum(np.abs(agent_1.opinions - agent_2.opinions))
