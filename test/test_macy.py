@@ -3,11 +3,12 @@ import numpy as np
 import unittest
 
 from macy import (
-    Agent, weight, raw_opinion_update_vec, opinion_update_vec, polarization
+    Agent, weight, raw_opinion_update_vec, opinion_update_vec, polarization,
+    Network
 )
 
 
-class TestCalculations(unittest.TestCase):
+class TestBasicCalculations(unittest.TestCase):
 
     def setUp(self):
 
@@ -114,3 +115,49 @@ class TestCalculations(unittest.TestCase):
         assert expected == calculated, 'calc: {}\nexpec: {}'.format(
             calculated, expected
         )
+
+
+class TestNetworkIterations(unittest.TestCase):
+
+    def setUp(self):
+
+        self.a1_2 = Agent()
+        self.a2_2 = Agent()
+        self.a3_2 = Agent()
+        self.a4_2 = Agent()
+
+        a1 = self.a1_2
+        a2 = self.a2_2
+        a3 = self.a3_2
+        a4 = self.a4_2
+
+        self.a1_2.opinions = np.array([-1.0, 0.5])
+        self.a2_2.opinions = np.array([-.5, .2])
+        self.a3_2.opinions = np.array([-.7, .6])
+        self.a4_2.opinions = np.array([-.7, .4])
+
+        self.graph = nx.Graph()
+        self.graph.add_edges_from([
+            (e1, e2, {'weight': weight(e1, e2)})
+            for e1, e2 in [(a1, a2), (a1, a4), (a2, a3), (a3, a4)]
+        ])
+
+    def test_add_random_connections(self):
+        'Random connections should increase number of edges to saturation'
+        network = Network(initial_graph=self.graph)
+        for _ in range(2):
+            cur_edges = network.graph.edges()
+            network.add_random_connection()
+            assert len(cur_edges) + 1 == len(network.graph.edges())
+
+        with self.assertRaises(RuntimeError):
+            network.add_random_connection()
+
+    def test_iteration(self):
+        'Weights and opinions should update as calculated by hand'
+
+        network = Network(initial_graph=self.graph)
+
+        network.iterate()
+
+        assert network is None

@@ -10,6 +10,9 @@ http://doi.org/10.1080/0022250X.2010.532261
 import numpy as np
 import networkx as nx
 
+from itertools import product
+from random import choice as random_choice
+
 
 class Cave(nx.Graph):
 
@@ -22,19 +25,49 @@ class Cave(nx.Graph):
 
 class Network(nx.Graph):
 
-    def __init__(self, caves, close_connections=False):
+    def __init__(self, initial_graph=None, close_connections=False):
         '''
-        Create a network of caves, initially all disconnected if
-        close_connections is False. Each cave will be assigned a nonnegative
-        integer which situates the cave somewhere on the unit circle.
+        Create a network of any initial configuration. Provides methods
+        for iterating (updating opinions and weights) and for randomizing
+        connections. We can provide other helper functions or class methods
+        for building specific initial configurations.
 
         '''
-        pass
+        self.graph = initial_graph
 
-    def randomize_connections(self):
-        pass
+        # Next two blocks (XXX) list of edges that could be added
+        # ("non_neighbors") seems convoluted, but it works for now.
+        # First it gets a list of all undirected pairs of vertices in
+        # the graph. Then it removes any of these pairs that are already
+        # connected in the graph
 
-    def update_weights(self):
+        # XXX
+        # all pairs of vertices
+        self.possible_edges = list(
+            {n1, n2} for n1, n2 in
+            product(self.graph.nodes(), self.graph.nodes())
+            if n1 != n2
+        )
+
+        # XXX
+        # all pairs of vertices with current neighbors removed
+        self.non_neighbors = list(np.unique(
+            [el for el in self.possible_edges if
+             el not in [{n1, n2} for n1, n2 in self.graph.edges()]]
+        ))
+
+    def add_random_connection(self):
+
+        if len(self.non_neighbors) > 0:
+            new_edge = random_choice(self.non_neighbors)
+            self.graph.add_edge(*new_edge)
+
+            # new_edge now defines neighbors
+            self.non_neighbors.remove(new_edge)
+        else:
+            raise RuntimeError('No non-neighbors left to connect')
+
+    def iterate(self):
         pass
 
 
