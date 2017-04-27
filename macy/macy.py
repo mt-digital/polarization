@@ -35,32 +35,36 @@ class Network(nx.Graph):
         '''
         self.graph = initial_graph
 
-        # Next two blocks (XXX) list of edges that could be added
-        # ("non_neighbors") seems convoluted, but it works for now.
-        # First it gets a list of all undirected pairs of vertices in
-        # the graph. Then it removes any of these pairs that are already
-        # connected in the graph
-
-        # XXX
         # all pairs of vertices
-        self.possible_edges = list(
-            {n1, n2} for n1, n2 in
-            product(self.graph.nodes(), self.graph.nodes())
-            if n1 != n2
-        )
+        nodes = self.graph.nodes()
+        n_nodes = len(nodes)
+        self.possible_edges = [
+            (nodes[i], nodes[j])
+            for i in range(n_nodes)
+            for j in range(i, n_nodes)
+            if i != j
+        ]
 
-        # XXX
         # all pairs of vertices with current neighbors removed
-        self.non_neighbors = list(np.unique(
-            [el for el in self.possible_edges if
-             el not in [{n1, n2} for n1, n2 in self.graph.edges()]]
-        ))
+        current_edges = self.graph.edges()
+        self.non_neighbors = [
+            el for el in self.possible_edges
+            if (
+                (el[0], el[1]) not in current_edges and
+                (el[1], el[0]) not in current_edges
+            )
+        ]
 
     def add_random_connection(self):
 
         if len(self.non_neighbors) > 0:
             new_edge = random_choice(self.non_neighbors)
             self.graph.add_edge(*new_edge)
+
+            print('\n')
+            print(new_edge)
+            print(self.non_neighbors)
+            print('\n')
 
             # new_edge now defines neighbors
             self.non_neighbors.remove(new_edge)
@@ -122,7 +126,14 @@ def opinion_update_vec(agent, neighbors):
 
     raw_update_vec = raw_opinion_update_vec(agent, neighbors)
 
-    return agent.opinions + (np.multiply(1 - agent.opinions, raw_update_vec))
+    ret = np.zeros(raw_update_vec.shape)
+    for i, op in enumerate(agent.opinions):
+        if op > 0:
+            ret[i] = op + (raw_update_vec[i]*(1 - op))
+        else:
+            ret[i] = op + (raw_update_vec[i]*(1 + op))
+
+    return ret
 
 
 def polarization(network):

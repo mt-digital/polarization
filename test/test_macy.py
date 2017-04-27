@@ -69,7 +69,7 @@ class TestBasicCalculations(unittest.TestCase):
 
         expected_0 = \
             self.a1_2.opinions[0] + \
-            ((1 - self.a1_2.opinions[0]) * raw_update_vec[0])
+            ((1 + self.a1_2.opinions[0]) * raw_update_vec[0])
 
         expected_1 = \
             self.a1_2.opinions[1] + \
@@ -78,8 +78,10 @@ class TestBasicCalculations(unittest.TestCase):
         calculated = opinion_update_vec(
             self.a1_2, neighbors
         )
+        expected = np.array([expected_0, expected_1])
 
-        assert (calculated == np.array([expected_0, expected_1])).all()
+        assert (calculated == expected).all(), \
+            'calculated: {}\nexpected: {}'.format(calculated, expected)
 
     def test_polarization(self):
 
@@ -112,10 +114,10 @@ class TestBasicCalculations(unittest.TestCase):
 
         calculated = polarization(g)
 
-        assert expected == calculated, 'calc: {}\nexpec: {}'.format(
-            calculated, expected
+        np.testing.assert_approx_equal(
+            expected, calculated,
+            err_msg='calc: {}\nexpec: {}'.format(calculated, expected)
         )
-
 
 class TestNetworkIterations(unittest.TestCase):
 
