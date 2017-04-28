@@ -12,6 +12,7 @@ import networkx as nx
 
 from itertools import product
 from random import choice as random_choice
+from random import shuffle
 
 
 class Cave(nx.Graph):
@@ -61,18 +62,20 @@ class Network(nx.Graph):
             new_edge = random_choice(self.non_neighbors)
             self.graph.add_edge(*new_edge)
 
-            print('\n')
-            print(new_edge)
-            print(self.non_neighbors)
-            print('\n')
-
             # new_edge now defines neighbors
             self.non_neighbors.remove(new_edge)
         else:
             raise RuntimeError('No non-neighbors left to connect')
 
     def iterate(self):
-        pass
+
+        # asynchronous updating
+        nodes = self.graph.nodes()
+        shuffle(nodes)
+
+        for agent in nodes:
+            neighbors = self.graph.neighbors(agent)
+            agent.opinions = opinion_update_vec(agent, neighbors)
 
 
 class Experiment:
@@ -102,7 +105,8 @@ def weight(a1, a2, nonnegative=False):
         raise RuntimeError("Agent's opinion vectors have different shapes")
     K = len(o1)
 
-    numerator = np.sum(np.abs(d) for d in o1 - o2)
+    diff = abs(o2 - o1)
+    numerator = np.sum(diff)
 
     if nonnegative:
         nonneg_fac = 2.0
@@ -149,11 +153,8 @@ def polarization(network):
     for i in range(L):
         for j in range(L):
             distances[i, j] = distance(nodes[i], nodes[j])
-            print('i={}, j={}, distance={}'.format(i, j, distances[i, j]))
 
     d_expected = distances.sum() / (L*(L-1))
-
-    print(d_expected)
 
     d_sub_mean = (distances - d_expected)
     for i in range(L):
@@ -167,5 +168,4 @@ def polarization(network):
 def distance(agent_1, agent_2):
 
     n_ops = len(agent_1.opinions)
-    print(n_ops)
     return (1.0 / n_ops) * np.sum(np.abs(agent_1.opinions - agent_2.opinions))
