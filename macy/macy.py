@@ -10,18 +10,29 @@ http://doi.org/10.1080/0022250X.2010.532261
 import numpy as np
 import networkx as nx
 
-from itertools import product
 from random import choice as random_choice
 from random import shuffle
 
 
-class Cave(nx.Graph):
+def experiment(n_caves, n_agents, conn_prob=.003, iterations=1000):
 
-    def __init__(self, n_agents=5):
-        '''
-        Initialize a single cave with n_agents
-        '''
-        pass
+    network = Network(caves(n_caves, n_agents))
+    network.add_random_connections(conn_prob=conn_prob)
+
+    for _ in range(iterations):
+        network.iterate()
+
+    return network
+
+
+def caves(n_caves=20, n_agents=5):
+    '''
+    Make a totally connected cave with n_agents
+    '''
+    return nx.relabel_nodes(
+        nx.caveman_graph(n_caves, n_agents),
+        {i: Agent() for i in range(n_caves * n_agents)}
+    )
 
 
 class Network(nx.Graph):
@@ -56,6 +67,13 @@ class Network(nx.Graph):
             )
         ]
 
+    def add_random_connections(self, conn_prob):
+
+        for pair in self.non_neighbors:
+            if np.random.uniform() < conn_prob:
+                self.graph.add_edge(*pair)
+                self.non_neighbors.remove(pair)
+
     def add_random_connection(self):
 
         if len(self.non_neighbors) > 0:
@@ -76,6 +94,9 @@ class Network(nx.Graph):
         for agent in nodes:
             neighbors = self.graph.neighbors(agent)
             agent.opinions = opinion_update_vec(agent, neighbors)
+
+    def draw(self):
+        nx.draw_circular(self.graph)
 
 
 class Experiment:
