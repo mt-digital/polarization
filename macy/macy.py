@@ -6,33 +6,22 @@ Flache, A., & Macy, M. W. (2011).  Small Worlds and Cultural Polarization.
 The Journal of Mathematical Sociology, 35(1–3), 146–176.
 http://doi.org/10.1080/0022250X.2010.532261
 '''
-
 import numpy as np
 import networkx as nx
+import os
 
+from copy import deepcopy
+from datetime import datetime
 from random import choice as random_choice
 from random import shuffle
 
 
-def experiment(n_caves, n_agents, conn_prob=.003, iterations=1000):
+class Agent:
 
-    network = Network(caves(n_caves, n_agents))
-    network.add_random_connections(conn_prob=conn_prob)
+    def __init__(self, n_opinions=2, cave=None, opinion_fill='random'):
 
-    for _ in range(iterations):
-        network.iterate()
-
-    return network
-
-
-def caves(n_caves=20, n_agents=5):
-    '''
-    Make a totally connected cave with n_agents
-    '''
-    return nx.relabel_nodes(
-        nx.caveman_graph(n_caves, n_agents),
-        {i: Agent() for i in range(n_caves * n_agents)}
-    )
+        self.opinions = np.random.uniform(low=-1.0, high=1.0, size=2)
+        self.cave = cave
 
 
 class Network(nx.Graph):
@@ -67,10 +56,10 @@ class Network(nx.Graph):
             )
         ]
 
-    def add_random_connections(self, conn_prob):
+    def add_random_connections(self, add_cxn_prob):
 
         for pair in self.non_neighbors:
-            if np.random.uniform() < conn_prob:
+            if np.random.uniform() < add_cxn_prob:
                 self.graph.add_edge(*pair)
                 self.non_neighbors.remove(pair)
 
@@ -102,17 +91,124 @@ class Network(nx.Graph):
 class Experiment:
 
     def __init__(self, n_per_cave, n_caves):
-        self.network = Network([Cave(n_per_cave) for _ in range(n_caves)])
 
-    def run(self, pct_rewire):
+        self.network = Network(caves())
+        self.history = {}
+        self.iterations = 0
+        self.n_caves = n_caves
 
-        pass
+    def setup(self, add_cxn_prob=.006):
+
+        self.network.add_random_connections(add_cxn_prob)
+
+    def iterate(self, n_steps=1):
+
+        for _ in range(n_steps):
+
+            self.history.update(
+                {
+                    self.iterations:
+                    deepcopy(self.network.graph.nodes())
+                }
+            )
+
+            self.network.iterate()
+            self.iterations += 1
+
+    def make_opinion_movie(self, movie_name=None):
+        '''
+        Arguments:
+            movie_name (str): becomes directory for video and components
+            resolution (int):
+        '''
+        import matplotlib.pyplot as plt
+        import matplotlib.animation as anim
+        import seaborn as sns
+
+        if movie_name is None:
+            movie_name = datetime.now().isoformat() + '.mp4'
+
+        ffmpeg_writer = anim.writers['ffmpeg']
+        metadata = dict(
+            title='Flache & Macy Animation ' + movie_name,
+            artist='Matthew A. Turner',
+            comment='See https://github.com/mtpain/polarization for more info'
+        )
+
+        writer = ffmpeg_writer(fps=15, metadata=metadata)
+
+        hist = self.history
+        fig = plt.figure()
+        plt.xlim(-1.1, 1.1)
+        plt.ylim(-1.1, 1.1)
+        ax = fig.add_subplot(111)
+
+        cave_plots = []
+        colors = sns.color_palette('husl', self.n_caves)
+
+        for i in range(self.n_caves):
+            l, = plt.plot([], [], 'o', lw=0,
+                          color=colors[i], ms=10, alpha=0.85)
+            cave_plots.append(l)
+
+        ax.set_aspect('equal')
+
+        with writer.saving(fig, movie_name, 150):
+
+            for i in range(max(hist.keys())):
+                plt.title('Iteration: {}'.format(i))
+                cave_opinions = get_cave_opinions_xy(hist[i])
+
+                for idx, l in enumerate(cave_plots):
+                    x, y = cave_opinions[idx]
+                    l.set_data(x, y)
+
+                writer.grab_frame()
 
 
-class Agent:
+def get_opinions_xy(opinions):
+    return [o[0] for o in opinions], [o[1] for o in opinions]
 
-    def __init__(self, n_opinions=2, opinion_fill='random'):
-        self.opinions = np.random.uniform(low=-1.0, high=1.0, size=2)
+
+def get_cave_opinions_xy(agents, n_caves=20):
+
+    return {
+
+        i: get_opinions_xy(
+                [
+                    agent.opinions for agent in agents
+                    if agent.cave == i
+                ]
+            )
+        for i in range(n_caves)
+    }
+
+
+def experiment(n_caves, n_agents, add_cxn_prob=.003, iterations=1000):
+
+    network = Network(caves(n_caves, n_agents))
+    network.add_random_connections(add_cxn_prob=add_cxn_prob)
+
+    for _ in range(iterations):
+        network.iterate()
+
+    return network
+
+
+def caves(n_caves=20, n_agents=5):
+    '''
+    Make a totally connected cave with n_agents
+    '''
+    relabelled_graph = nx.relabel_nodes(
+        nx.caveman_graph(n_caves, n_agents),
+        {i: Agent() for i in range(n_caves * n_agents)}
+    )
+
+    for idx, subg in enumerate(nx.connected_components(relabelled_graph)):
+        for agent in subg:
+            agent.cave = idx + 1
+
+    return relabelled_graph
 
 
 def weight(a1, a2, nonnegative=False):
