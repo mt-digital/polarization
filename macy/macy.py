@@ -10,6 +10,8 @@ import numpy as np
 import networkx as nx
 import os
 
+from collections import OrderedDict
+
 from copy import deepcopy
 from datetime import datetime
 from random import choice as random_choice
@@ -48,6 +50,17 @@ class Network(nx.Graph):
 
         # all pairs of vertices with current neighbors removed
         current_edges = self.graph.edges()
+
+        self.non_neighbors = deepcopy(self.possible_edges)
+        # print(len(current_edges))
+        # for i, el in enumerate(current_edges):
+        #     if (el[0], el[1]) in self.non_neighbors:
+        #         self.non_neighbors.remove((el[0], el[1]))
+        #     elif (el[1], el[0]) in self.non_neighbors:
+        #         self.non_neighbors.remove((el[1], el[0]))
+
+        #     print(i)
+
         self.non_neighbors = [
             el for el in self.possible_edges
             if (
@@ -56,12 +69,19 @@ class Network(nx.Graph):
             )
         ]
 
-    def add_random_connections(self, add_cxn_prob):
+    def add_random_connections(self, add_cxn_prob, percolation_limit=False):
 
         for pair in self.non_neighbors:
             if np.random.uniform() < add_cxn_prob:
                 self.graph.add_edge(*pair)
                 self.non_neighbors.remove(pair)
+
+        # add edges until percolation limit is reached
+        if percolation_limit:
+            while not nx.is_connected(self.graph):
+                new_edge = random_choice(self.non_neighbors)
+                self.graph.add_edge(*new_edge)
+                self.non_neighbors.remove(new_edge)
 
     def add_random_connection(self):
 
@@ -74,7 +94,7 @@ class Network(nx.Graph):
         else:
             raise RuntimeError('No non-neighbors left to connect')
 
-    def iterate(self):
+    def iterate(self, noise_level=0.0):
 
         # asynchronous updating
         nodes = self.graph.nodes()
@@ -93,29 +113,32 @@ class Experiment:
     def __init__(self, n_per_cave, n_caves):
 
         self.network = Network(caves())
-        self.history = {}
+        self.history = OrderedDict()
         self.iterations = 0
         self.n_caves = n_caves
 
-    def setup(self, add_cxn_prob=.006):
+    def setup(self, add_cxn_prob=.006, percolation_limit=False):
 
-        self.network.add_random_connections(add_cxn_prob)
+        self.network.add_random_connections(
+            add_cxn_prob, percolation_limit=percolation_limit)
 
-    def iterate(self, n_steps=1):
+    def iterate(self, n_steps=1, noise_level=0.0):
 
         for _ in range(n_steps):
 
             self.history.update(
                 {
-                    self.iterations:
-                    deepcopy(self.network.graph.nodes())
+                    self.iterations: {
+                        'polarization': polarization(self.network.graph),
+                        'opinions': deepcopy(self.network.graph.nodes())
+                    }
                 }
             )
 
-            self.network.iterate()
+            self.network.iterate(noise_level=noise_level)
             self.iterations += 1
 
-    def make_opinion_movie(self, movie_name=None):
+    def make_opinion_movie(self, movie_name=None, fps=15, dpi=150):
         '''
         Arguments:
             movie_name (str): becomes directory for video and components
@@ -135,7 +158,7 @@ class Experiment:
             comment='See https://github.com/mtpain/polarization for more info'
         )
 
-        writer = ffmpeg_writer(fps=15, metadata=metadata)
+        writer = ffmpeg_writer(fps=fps, metadata=metadata)
 
         hist = self.history
         fig = plt.figure()
@@ -153,11 +176,11 @@ class Experiment:
 
         ax.set_aspect('equal')
 
-        with writer.saving(fig, movie_name, 150):
+        with writer.saving(fig, movie_name, dpi):
 
             for i in range(max(hist.keys())):
                 plt.title('Iteration: {}'.format(i))
-                cave_opinions = get_cave_opinions_xy(hist[i])
+                cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
 
                 for idx, l in enumerate(cave_plots):
                     x, y = cave_opinions[idx]
@@ -243,26 +266,28 @@ def raw_opinion_update_vec(agent, neighbors):
     )
 
 
-def opinion_update_vec(agent, neighbors):
+def opinion_update_vec(agent, neighbors, noise_level=0.0):
 
     raw_update_vec = raw_opinion_update_vec(agent, neighbors)
 
     ret = np.zeros(raw_update_vec.shape)
+
+    noise_term = noise_level * np.random.normal()
     for i, op in enumerate(agent.opinions):
         if op > 0:
-            ret[i] = op + (raw_update_vec[i]*(1 - op))
+            ret[i] = op + ((noise_term + raw_update_vec[i])*(1 - op))
         else:
-            ret[i] = op + (raw_update_vec[i]*(1 + op))
+            ret[i] = op + ((noise_term + raw_update_vec[i])*(1 + op))
 
     return ret
 
 
-def polarization(network):
+def polarization(graph):
     '''
     Implementing Equation 3
     '''
 
-    nodes = network.nodes()
+    nodes = graph.nodes()
 
     L = len(nodes)
     distances = np.zeros((L, L))
