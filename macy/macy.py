@@ -180,7 +180,12 @@ class Experiment:
         with writer.saving(fig, movie_name, dpi):
 
             for i in range(max(hist.keys())):
-                plt.title('Iteration: {}'.format(i))
+
+                plt.title('Polarization: {:.2f}\nIteration: {}'.format(
+                        hist[i]['polarization'], i
+                    )
+                )
+
                 cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
 
                 for idx, l in enumerate(cave_plots):
