@@ -102,7 +102,8 @@ class Network(nx.Graph):
 
         for agent in nodes:
             neighbors = self.graph.neighbors(agent)
-            agent.opinions = opinion_update_vec(agent, neighbors)
+            agent.opinions = opinion_update_vec(agent, neighbors,
+                                                noise_level=noise_level)
 
     def draw(self):
         nx.draw_circular(self.graph)
