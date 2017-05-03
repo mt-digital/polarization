@@ -125,7 +125,6 @@ class Experiment:
     def iterate(self, n_steps=1, noise_level=0.0):
 
         for i in range(n_steps):
-            print(i)
 
             self.history.update(
                 {
