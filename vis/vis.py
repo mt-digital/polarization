@@ -371,7 +371,7 @@ def _do_quadratic_fit_variance(df, box_width,
     return var, x, y, fit
 
 
-def sample_initial_opinion_limits(save_path, box_widths=[.2, .5, .8]):
+def sample_initial_opinion_limits(save_path=None, box_widths=[.2, .5, .8]):
 
     fig, axs = plt.subplots(1, 3)
 
@@ -399,4 +399,5 @@ def sample_initial_opinion_limits(save_path, box_widths=[.2, .5, .8]):
 
     plt.tight_layout()
 
-    fig.savefig(save_path)
+    if save_path is not None:
+        fig.savefig(save_path)

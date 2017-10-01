@@ -4,6 +4,7 @@ from macy import Experiment
 
 
 class BoxedCavesExperiment(Experiment):
+
     def __init__(self, n_per_cave, n_caves, box_length, K=2):
         Experiment.__init__(self, n_per_cave, n_caves)
 
@@ -21,6 +22,5 @@ def _assign_boxed_constrained_opinions(agents, box_length, K):
     Returns:
         None
     '''
-
     for agent in agents:
         agent.opinions = np.random.uniform(-box_length, box_length, size=(K,))

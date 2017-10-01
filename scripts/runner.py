@@ -28,9 +28,6 @@ def _setup_box_experiment(n_per_cave, n_caves,
     return _run_box_experiment
 
 
-# BOX_EXPERIMENT_5_20 = _setup_box_experiment(5, 20)
-
-
 def _box_experiment_5_20(param_pair, output_path='output'):
 
     e = BoxedCavesExperiment(5, 20, param_pair[0])
