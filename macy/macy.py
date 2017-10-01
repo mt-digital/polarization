@@ -1,10 +1,6 @@
 '''
 Python implementation of Flache & Macy's "caveman" model of polarization.
 
-
-Flache, A., & Macy, M. W. (2011).  Small Worlds and Cultural Polarization.
-The Journal of Mathematical Sociology, 35(1–3), 146–176.
-http://doi.org/10.1080/0022250X.2010.532261
 '''
 import numpy as np
 import networkx as nx
@@ -39,7 +35,7 @@ class Network(nx.Graph):
         self.graph = initial_graph
 
         # all pairs of vertices
-        nodes = self.graph.nodes()
+        nodes = list(self.graph.nodes())
         n_nodes = len(nodes)
         self.possible_edges = [
             (nodes[i], nodes[j])
