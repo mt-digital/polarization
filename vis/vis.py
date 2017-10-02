@@ -18,6 +18,7 @@ def phase_diagram(df, noise_level_lim=0.4, n_iter=1000,
                   seaborn_context='paper', font_scale=1.2,
                   xlabel='Maximum initial opinion magnitude, $S$',
                   ylabel='Cultural effects magnitude, $\sigma^c$',
+                  annot=True, output_path=None,
                   **seaborn_heatmap_kwargs):
     '''
     2D phase diagram with maximum initial opinion magnitude on x-axis and
@@ -56,17 +57,24 @@ def phase_diagram(df, noise_level_lim=0.4, n_iter=1000,
 
     pivot = means_reset_part.pivot('noise_level', 'box_width', 'polarization')
 
-    plt.figure()
+    fig = plt.figure(figsize=(9, 6.5))
 
-    ax = sns.heatmap(pivot, annot=True, fmt='.2f', cmap='YlGnBu_r',
+    ax = sns.heatmap(pivot, annot=annot, fmt='.2f', cmap='YlGnBu_r',
                      **seaborn_heatmap_kwargs)
     ax.invert_yaxis()
     ax.set_xlabel(xlabel, size=20)
     ax.set_ylabel(ylabel, size=20)
 
     ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+    cur_xticklabels = ax.get_xticklabels()
+    ax.set_xticks(ax.get_xticks()[1::2])
+    ax.set_xticklabels(cur_xticklabels[1::2])
 
-    return ax
+    if output_path is None:
+        return ax
+    else:
+        fig.savefig(output_path, dpi=300)
+
 
 
 def polarization_by_iteration(df, box_width, noise_level,
@@ -375,7 +383,6 @@ def sample_initial_opinion_limits(save_path=None, box_widths=[.2, .5, .8]):
 
     fig, axs = plt.subplots(1, 3)
 
-    # labels = ['({})'.format(el) for el in ('a', 'b', 'c')]
     for i, bw in enumerate(box_widths):
 
         ax = axs[i]

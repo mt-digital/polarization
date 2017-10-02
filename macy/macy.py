@@ -67,6 +67,8 @@ class Network(nx.Graph):
 
     def add_random_connections(self, add_cxn_prob, percolation_limit=False):
 
+        # you're not removing any existing!
+
         for pair in self.non_neighbors:
             if np.random.uniform() < add_cxn_prob:
                 self.graph.add_edge(*pair)
@@ -93,7 +95,7 @@ class Network(nx.Graph):
     def iterate(self, noise_level=0.0):
 
         # asynchronous updating
-        nodes = self.graph.nodes()
+        nodes = list(self.graph.nodes())
         shuffle(nodes)
 
         for agent in nodes:
@@ -108,8 +110,7 @@ class Network(nx.Graph):
 class Experiment:
 
     def __init__(self, n_per_cave, n_caves):
-
-        self.network = Network(caves())
+        self.network = Network(caves(n_caves=n_caves, n_agents=n_per_cave))
         self.history = OrderedDict()
         self.iterations = 0
         self.n_caves = n_caves
@@ -127,7 +128,8 @@ class Experiment:
                 {
                     self.iterations: {
                         'polarization': polarization(self.network.graph),
-                        'opinions': deepcopy(self.network.graph.nodes())
+                        'opinions': [agent.opinions for agent in
+                                     deepcopy(sorted(self.network.graph.nodes()))]
                     }
                 }
             )
@@ -177,10 +179,10 @@ class Experiment:
 
             for i in range(max(hist.keys())):
 
-                plt.title('Polarization: {:.2f}\nIteration: {}'.format(
-                        hist[i]['polarization'], i
-                    )
-                )
+                # plt.title('Polarization: {:.2f}\nIteration: {}'.format(
+                #         hist[i]['polarization'], i
+                #     )
+                # )
 
                 cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
 
@@ -192,7 +194,7 @@ class Experiment:
 
 
 def get_opinions_xy(opinions):
-    return [o[0] for o in opinions], [o[1] for o in opinions]
+    return np.array([o[0] for o in opinions]), np.array([o[1] for o in opinions])
 
 
 def get_cave_opinions_xy(agents, n_caves=20):
@@ -260,6 +262,7 @@ def weight(a1, a2, nonnegative=False):
 
 def raw_opinion_update_vec(agent, neighbors):
 
+    neighbors = list(neighbors)
     factor = (1.0 / (2.0 * len(neighbors)))
 
     return factor * np.sum(
@@ -289,7 +292,7 @@ def polarization(graph):
     Implementing Equation 3
     '''
 
-    nodes = graph.nodes()
+    nodes = list(graph.nodes())
 
     L = len(nodes)
     distances = np.zeros((L, L))
