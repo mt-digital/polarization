@@ -128,8 +128,8 @@ class Experiment:
                 {
                     self.iterations: {
                         'polarization': polarization(self.network.graph),
-                        'opinions': [agent.opinions for agent in
-                                     deepcopy(sorted(self.network.graph.nodes()))]
+                        # 'opinions': [agent.opinions for agent in
+                        #              deepcopy(sorted(self.network.graph.nodes()))]
                     }
                 }
             )
