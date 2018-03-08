@@ -5,6 +5,7 @@ Python implementation of Flache & Macy's "caveman" model of polarization.
 import numpy as np
 import networkx as nx
 import os
+import random
 
 from collections import OrderedDict
 
@@ -48,49 +49,58 @@ class Network(nx.Graph):
         current_edges = self.graph.edges()
 
         self.non_neighbors = deepcopy(self.possible_edges)
-        # print(len(current_edges))
-        # for i, el in enumerate(current_edges):
-        #     if (el[0], el[1]) in self.non_neighbors:
-        #         self.non_neighbors.remove((el[0], el[1]))
-        #     elif (el[1], el[0]) in self.non_neighbors:
-        #         self.non_neighbors.remove((el[1], el[0]))
 
-        #     print(i)
+    def add_random_connections(self, rewire_fraction, percolation_limit=False):
+        '''
+        Arguments:
+            rewire_fraction (float): Fraction of edges to rewire
+        '''
+        # Sample with replacement from this to keep self's edges pristine.
+        edges_copy = deepcopy(self.graph.edges())
 
-        self.non_neighbors = [
-            el for el in self.possible_edges
-            if (
-                (el[0], el[1]) not in current_edges and
-                (el[1], el[0]) not in current_edges
-            )
-        ]
+        # Helper to get two edges to swap as explained in reference at top.
+        def get_swap_edges(edges, target_edges):
+            e1, e2 = random.sample(edges, 2)
+            A, B = e1
+            C, D = e2
 
-    def add_random_connections(self, add_cxn_prob, percolation_limit=False):
+            def retry_condition(A, B, C, D):
+                return (
+                    A in e2 or
+                    B in e2 or
+                    (A, C) in edges or (C, A) in edges or
+                    (B, D) in edges or (D, B) in edges or
+                    (A, C) in target_edges or (C, A) in target_edges or
+                    (B, D) in target_edges or (D, B) in target_edges
+                )
+            while retry_condition(A, B, C, D):
+                e1, e2 = random.sample(edges, 2)
+                A, B = e1
+                C, D = e2
+            return e1, e2
 
-        # you're not removing any existing!
+        # Helper to swap edges e1 and e2 from graph in-place.
+        def swap_edges(graph, e1, e2):
+            graph.remove_edge(*e1)
+            graph.remove_edge(*e2)
+            graph.add_edges_from([
+                (e1[0], e2[0]), (e1[1], e2[1])
+            ])
 
-        for pair in self.non_neighbors:
-            if np.random.uniform() < add_cxn_prob:
-                self.graph.add_edge(*pair)
-                self.non_neighbors.remove(pair)
+        # Must halve the given rewire_fraction to know how many swaps to do,
+        # since each swap operation swaps two edges.
+        rewire_number = int(round(
+            (rewire_fraction * 0.5) * self.graph.number_of_nodes()
+        ))
 
-        # add edges until percolation limit is reached
-        if percolation_limit:
-            while not nx.is_connected(self.graph):
-                new_edge = random_choice(self.non_neighbors)
-                self.graph.add_edge(*new_edge)
-                self.non_neighbors.remove(new_edge)
+        for _ in range(rewire_number):
+            # Get the edges to be swapped and swap them.
+            e1, e2 = get_swap_edges(edges_copy, self.graph.edges())
+            swap_edges(self.graph, e1, e2)
 
-    def add_random_connection(self):
-
-        if len(self.non_neighbors) > 0:
-            new_edge = random_choice(self.non_neighbors)
-            self.graph.add_edge(*new_edge)
-
-            # new_edge now defines neighbors
-            self.non_neighbors.remove(new_edge)
-        else:
-            raise RuntimeError('No non-neighbors left to connect')
+            # Remove edges from potential ones to be swapped.
+            edges_copy.remove(e1)
+            edges_copy.remove(e2)
 
     def iterate(self, noise_level=0.0):
 
@@ -222,12 +232,13 @@ def experiment(n_caves, n_agents, add_cxn_prob=.003, iterations=1000):
     return network
 
 
-def caves(n_caves=20, n_agents=5):
+def caves(n_caves=20, n_agents=5, connected=False):
     '''
     Make a totally connected cave with n_agents
     '''
+    cave_fun = nx.connected_caveman_graph if connected else nx.caveman_graph
     relabelled_graph = nx.relabel_nodes(
-        nx.caveman_graph(n_caves, n_agents),
+        cave_fun(n_caves, n_agents),
         {i: Agent() for i in range(n_caves * n_agents)}
     )
 

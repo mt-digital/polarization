@@ -143,14 +143,3 @@ class TestNetworkIterations(unittest.TestCase):
             (e1, e2, {'weight': weight(e1, e2)})
             for e1, e2 in [(a1, a2), (a1, a4), (a2, a3), (a3, a4)]
         ])
-
-    def test_add_random_connections(self):
-        'Random connections should increase number of edges to saturation'
-        network = Network(initial_graph=self.graph)
-        for _ in range(2):
-            cur_edges = network.graph.edges()
-            network.add_random_connection()
-            assert len(cur_edges) + 1 == len(network.graph.edges())
-
-        with self.assertRaises(RuntimeError):
-            network.add_random_connection()
