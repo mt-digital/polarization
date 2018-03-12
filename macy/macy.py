@@ -8,11 +8,11 @@ import os
 import random
 
 from collections import OrderedDict
-
 from copy import deepcopy
 from datetime import datetime
 from random import choice as random_choice
 from random import shuffle
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class Agent:
@@ -102,13 +102,19 @@ class Network(nx.Graph):
             edges_copy.remove(e1)
             edges_copy.remove(e2)
 
+    # Actually this is doing 100 FM2011 iterations every time, one for each
+    # agent.
     def iterate(self, noise_level=0.0):
 
         # asynchronous updating
         nodes = list(self.graph.nodes())
+        # TODO: don't need to shuffle every time do we?
+        # Seems we could shuffle once, go through all shuffled nodes, then
+        # shuffle again.
         shuffle(nodes)
 
         for agent in nodes:
+            # This could be slow if it has to compute it every time.
             neighbors = self.graph.neighbors(agent)
             agent.opinions = opinion_update_vec(agent, neighbors,
                                                 noise_level=noise_level)
@@ -121,7 +127,8 @@ class Experiment:
 
     def __init__(self, n_per_cave, n_caves):
         self.network = Network(caves(n_caves=n_caves, n_agents=n_per_cave))
-        self.history = OrderedDict()
+        # self.history = OrderedDict()
+        self.history = {'polarization': []}
         self.iterations = 0
         self.n_caves = n_caves
 
@@ -131,18 +138,22 @@ class Experiment:
             add_cxn_prob, percolation_limit=percolation_limit)
 
     def iterate(self, n_steps=1, noise_level=0.0):
+        from progressbar import ProgressBar
+        bar = ProgressBar()
+        for i in bar(range(n_steps)):
 
-        for i in range(n_steps):
-
-            self.history.update(
-                {
-                    self.iterations: {
-                        'polarization': polarization(self.network.graph),
-                        # 'opinions': [agent.opinions for agent in
-                        #              deepcopy(sorted(self.network.graph.nodes()))]
-                    }
-                }
+            self.history['polarization'].append(
+                (i, polarization(self.network.graph))
             )
+            # self.history.update(
+            #     {
+            #         self.iterations: {
+            #             'polarization': polarization(self.network.graph),
+            #             # 'opinions': [agent.opinions for agent in
+            #             #              deepcopy(sorted(self.network.graph.nodes()))]
+            #         }
+            #     }
+            # )
 
             self.network.iterate(noise_level=noise_level)
             self.iterations += 1
@@ -249,35 +260,41 @@ def caves(n_caves=20, n_agents=5, connected=False):
     return relabelled_graph
 
 
-def weight(a1, a2, nonnegative=False):
+def weight(a1, a2, nonnegative=False, distance_metric='fm2011'):
     '''
     Calculate connection weight between two agents (Equation [1])
     '''
     o1 = a1.opinions
     o2 = a2.opinions
 
-    if o1.shape != o2.shape:
-        raise RuntimeError("Agent's opinion vectors have different shapes")
-    K = len(o1)
+    if distance_metric == 'fm2011':
+        if o1.shape != o2.shape:
+            raise RuntimeError("Agent's opinion vectors have different shapes")
+        K = len(o1)
 
-    diff = abs(o2 - o1)
-    numerator = np.sum(diff)
+        diff = abs(o2 - o1)
+        numerator = np.sum(diff)
 
-    if nonnegative:
-        nonneg_fac = 2.0
-    else:
-        nonneg_fac = 1.0
+        if nonnegative:
+            nonneg_fac = 2.0
+        else:
+            nonneg_fac = 1.0
 
-    return 1 - (numerator / (nonneg_fac * K))
+        return 1 - (numerator / (nonneg_fac * K))
+
+    elif distance_metric == 'cosine_similarity':
+        return cosine_similarity(o1, o2)
 
 
-def raw_opinion_update_vec(agent, neighbors):
+def raw_opinion_update_vec(agent, neighbors, distance_metric='fm2011'):
 
     neighbors = list(neighbors)
     factor = (1.0 / (2.0 * len(neighbors)))
 
     return factor * np.sum(
-        weight(agent, neighbor) * (neighbor.opinions - agent.opinions)
+        weight(agent, neighbor, distance_metric=distance_metric) *
+        (neighbor.opinions - agent.opinions)
+
         for neighbor in neighbors
     )
 
