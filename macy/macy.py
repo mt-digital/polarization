@@ -13,6 +13,7 @@ from datetime import datetime
 from random import choice as random_choice
 from random import shuffle
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cdist
 
 
 class Agent:
@@ -46,17 +47,17 @@ class Network(nx.Graph):
         ]
 
         # all pairs of vertices with current neighbors removed
-        current_edges = self.graph.edges()
+        # current_edges = self.graph.edges()
 
         self.non_neighbors = deepcopy(self.possible_edges)
 
-    def add_random_connections(self, rewire_fraction, percolation_limit=False):
+    def randomize_edges(self, rewire_prob, percolation_limit=False):
         '''
         Arguments:
             rewire_fraction (float): Fraction of edges to rewire
         '''
         # Sample with replacement from this to keep self's edges pristine.
-        edges_copy = deepcopy(self.graph.edges())
+        edges_copy = list(self.graph.edges())
 
         # Helper to get two edges to swap as explained in reference at top.
         def get_swap_edges(edges, target_edges):
@@ -90,8 +91,11 @@ class Network(nx.Graph):
         # Must halve the given rewire_fraction to know how many swaps to do,
         # since each swap operation swaps two edges.
         rewire_number = int(round(
-            (rewire_fraction * 0.5) * self.graph.number_of_nodes()
+            (rewire_prob * 0.5) * self.graph.number_of_nodes()
         ))
+
+        # import ipdb
+        # ipdb.set_trace()
 
         for _ in range(rewire_number):
             # Get the edges to be swapped and swap them.
@@ -124,18 +128,39 @@ class Network(nx.Graph):
 
 
 class Experiment:
+    '''
+    Wrap the basic experiment structure. This will provide a randomly rewired
+    connected caveman graph, where each edge is rewired with probability
+    rewire_prob. Perhaps later I will make it more general to test the
+    disconnected caveman graph, or have the graph type be more general. For now
+    we are just investigating randomized connected caveman graphs; no need
+    to add unnecessary complexity.
+    '''
+    def __init__(self, n_caves, n_per_cave, outcome_metric='fm2011',
+                 rewire_prob=0.1, percolation_limit=False):
+        # Initialize graph labelled by integers and randomize.
+        network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
+        network.randomize_edges(
+            rewire_prob, percolation_limit=percolation_limit
+        )
+        # Initialize an agent at each node.
+        relabelled_graph = nx.relabel_nodes(
+            network.graph,
+            {n: Agent() for n in network.graph.nodes()}
+        )
+        self.network = Network(relabelled_graph)
+        del network
 
-    def __init__(self, n_per_cave, n_caves):
-        self.network = Network(caves(n_caves=n_caves, n_agents=n_per_cave))
-        # self.history = OrderedDict()
+        # History will store each timestep's polarization measure.
         self.history = {'polarization': []}
         self.iterations = 0
         self.n_caves = n_caves
+        self.outcome_metric = outcome_metric
 
-    def setup(self, add_cxn_prob=.006, percolation_limit=False):
+    # def setup(self, add_cxn_prob=.006, percolation_limit=False):
 
-        self.network.add_random_connections(
-            add_cxn_prob, percolation_limit=percolation_limit)
+    #     self.network.add_random_connections(
+    #         add_cxn_prob, percolation_limit=percolation_limit)
 
     def iterate(self, n_steps=1, noise_level=0.0):
         from progressbar import ProgressBar
@@ -143,7 +168,8 @@ class Experiment:
         for i in bar(range(n_steps)):
 
             self.history['polarization'].append(
-                (i, polarization(self.network.graph))
+                (i,
+                 polarization(self.network.graph, metric=self.outcome_metric))
             )
             # self.history.update(
             #     {
@@ -253,9 +279,9 @@ def caves(n_caves=20, n_agents=5, connected=False):
         {i: Agent() for i in range(n_caves * n_agents)}
     )
 
-    for idx, subg in enumerate(nx.connected_components(relabelled_graph)):
-        for agent in subg:
-            agent.cave = idx + 1
+    # for idx, subg in enumerate(nx.connected_components(relabelled_graph)):
+    #     for agent in subg:
+    #         agent.cave = idx + 1
 
     return relabelled_graph
 
@@ -315,32 +341,53 @@ def opinion_update_vec(agent, neighbors, noise_level=0.0):
     return ret
 
 
-def polarization(graph):
+def polarization(graph, metric='fm2011'):
     '''
-    Implementing Equation 3
+    Implementing Equation 3. Metrics used: fm2011, cityblock, or euclidian.
+    fm2011 uses cityblock scaled by 1/K.
+
+    Returns:
+        (float) : variance of all pairwise distances.
     '''
+    # np_norm = np.linalg.norm
+    # if metric == 'fm2011':
+    #     distance = fm2011_distance
+    # elif metric == 'euclidian':
+    #     distance = lambda x, y: np_norm(y.opinions - x.opinions, ord=2)
+    # elif metric == 'manhattan':
+    #     distance = lambda x, y: np_norm(y.opinions - x.opinions, ord=1)
 
-    nodes = list(graph.nodes())
+    X = [n.opinions for n in graph.nodes()]
+    K = len(X[0])
+    N = len(X)
+    if metric == 'fm2011':
+        distances = (1.0 / K) * cdist(X, X, metric='cityblock')
+    else:
+        distances = cdist(X, X, metric=metric)
 
-    L = len(nodes)
-    distances = np.zeros((L, L))
+    # FM2011 use the variance over non-repeating d_ij with i≠j, as
+    # best I can tell. Their explanation/notation is confusing, see p. 156.
+    return distances[np.triu_indices(N, k=1)].var()
 
-    for i in range(L):
-        for j in range(L):
-            distances[i, j] = distance(nodes[i], nodes[j])
+    # L = len(nodes)
+    # distances = np.zeros((L, L))
 
-    d_expected = distances.sum() / (L*(L-1))
+    #     for i in range(L):
+    #         for j in range(L):
+    #             distances[i, j] = distance(nodes[i], nodes[j])
 
-    d_sub_mean = (distances - d_expected)
-    for i in range(L):
-        d_sub_mean[i, i] = 0.0
+    # d_expected = distances.sum() / (L*(L-1))
 
-    d_sub_mean_sq = np.sum(np.power(d_sub_mean, 2))
+    # d_sub_mean = (distances - d_expected)
+    # for i in range(L):
+    #     d_sub_mean[i, i] = 0.0
 
-    return (1/(L*(L-1))) * d_sub_mean_sq
+    # d_sub_mean_sq = np.sum(np.power(d_sub_mean, 2))
+
+    # return (1/(L*(L-1))) * d_sub_mean_sq
 
 
-def distance(agent_1, agent_2):
+def fm2011_distance(agent_1, agent_2):
 
     n_ops = len(agent_1.opinions)
     return (1.0 / n_ops) * np.sum(np.abs(agent_1.opinions - agent_2.opinions))

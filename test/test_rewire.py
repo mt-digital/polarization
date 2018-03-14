@@ -39,7 +39,7 @@ class TestRewiring(unittest.TestCase):
             for cxn_prob in np.arange(0.1, 0.5, 0.1):
 
                 net = Network(deepcopy(cc))
-                net.add_random_connections(cxn_prob)
+                net.randomize_edges(cxn_prob)
 
                 num_rand = [sum(1 for _ in nx.all_neighbors(net.graph, n))
                             for n in net.graph.nodes()]
