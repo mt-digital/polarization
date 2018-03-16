@@ -2,28 +2,23 @@
 Python implementation of Flache & Macy's "caveman" model of polarization.
 
 '''
+import itertools
 import numpy as np
 import networkx as nx
-import os
 import random
 import secrets
 
-from collections import OrderedDict
-from copy import deepcopy
 from datetime import datetime
-from random import choice as random_choice
-from random import shuffle
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import cdist
 
 
 class Agent:
 
-    def __init__(self, n_opinions=2, cave=None, opinion_fill='random'):
+    def __init__(self, n_opinions=2, opinion_fill='random'):
 
         self.opinions = np.random.uniform(low=-1.0, high=1.0, size=2)
         self.weights = None
-        self.cave = cave
 
 
 class Network(nx.Graph):
@@ -50,14 +45,39 @@ class Network(nx.Graph):
 
         self.n_nodes = n_nodes
 
-    def add_random_edges(self, n_edges=20):
+    def add_random_edges(self, n_edges):
         '''
         FM2011 add 20 edges randomly and to immediate cave "to the right".
         This will add n_edges randomly.
         '''
-        pass
+        # Create container for existing edges
+        # we find so we don't try them again.
+        existing_edges = set()
 
-    def randomize_edges(self, rewire_prob, percolation_limit=False):
+        for i in range(n_edges):
+            have_new_edge = False
+            while not have_new_edge:
+                # Select a random pair of nodes from the graph.
+                node_pair = tuple(np.random.choice(
+                    self.graph.nodes(), 2, replace=False
+                ))
+                # Check if there is already an edge between the two nodes.
+                if node_pair in existing_edges:
+                    pass
+                elif self.graph.has_edge(*node_pair):
+                    existing_edges.add(node_pair)
+                # If not, create an edge between them.
+                else:
+                    self.graph.add_edge(*node_pair)
+                    existing_edges.add(node_pair)
+                    have_new_edge = True
+
+        # Update neighbors and weights.
+        for agent in self.graph.nodes():
+            neighbors = self.graph.neighbors(agent)
+            update_weights(agent, neighbors)
+
+    def rewire_edges(self, rewire_prob, percolation_limit=False):
         '''
         Arguments:
             rewire_fraction (float): Fraction of edges to rewire
@@ -149,27 +169,44 @@ class Experiment:
     we are just investigating randomized connected caveman graphs; no need
     to add unnecessary complexity.
     '''
-    def __init__(self, n_caves, n_per_cave, outcome_metric='fm2011',
-                 rewire_prob=0.1, percolation_limit=False):
+    def __init__(self, n_caves, n_per_cave, outcome_metric='fm2011'):
         # Initialize graph labelled by integers and randomize.
-        network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
-        network.randomize_edges(
-            rewire_prob, percolation_limit=percolation_limit
-        )
+        # network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
         # Initialize an agent at each node.
-        relabelled_graph = nx.relabel_nodes(
-            network.graph,
-            {n: Agent() for n in network.graph.nodes()}
-        )
-        self.network = Network(relabelled_graph)
-        del network
+        # graph = nx.connected_caveman_graph(n_caves, n_per_cave)
 
-        i = 0
+        # Customizing the networkx source for building connected caveman.
+        # See https://goo.gl/pFPxfZ.
+        # Create caveman graph.
+        graph = nx.empty_graph(n_caves * n_per_cave)
+        N = n_caves * n_per_cave
+        if n_per_cave > 1:
+            for cave_idx, start in enumerate(range(0, N, n_per_cave)):
+
+                for node_idx in range(start, start + n_per_cave):
+                    graph.node[node_idx]['cave_idx'] = cave_idx
+
+                edges = itertools.combinations(
+                    range(start, start + n_per_cave), 2
+                )
+                graph.add_edges_from(edges)
+
+        for start in range(0, N, n_per_cave):
+            graph.remove_edge(start, start + 1)
+            graph.add_edge(start, (start - 1) % N)
+
+        relabelled_graph = nx.relabel_nodes(
+            graph,
+            {n: Agent() for n in graph.nodes()}
+        )
+
+        self.network = Network(relabelled_graph)
+
         for agent in self.network.graph.nodes():
             neighbors = self.network.graph.neighbors(agent)
             update_weights(agent, neighbors)
-            i += 1
-        print(i)
+
+        # Assign cave indices by walking
 
         # History will store each timestep's polarization measure.
         self.history = {'polarization': [], 'coords': []}
@@ -177,10 +214,14 @@ class Experiment:
         self.n_caves = n_caves
         self.outcome_metric = outcome_metric
 
-    # def setup(self, add_cxn_prob=.006, percolation_limit=False):
+    def add_shortrange_edges(self, n_edges=20):
+        pass
 
-    #     self.network.add_random_connections(
-    #         add_cxn_prob, percolation_limit=percolation_limit)
+    def add_random_edges(self, n_edges):
+        self.network.add_random_edges(n_edges)
+
+    def rewire_edges(self, rewire_prob=0.1):
+        self.network.rewire_edges(rewire_prob)
 
     def iterate(self, n_steps=1, noise_level=0.0):
 
@@ -190,7 +231,7 @@ class Experiment:
         for i in bar(range(n_steps)):
 
             self.history['polarization'].append(
-                (i,
+                (self.iterations,
                  polarization(self.network.graph, metric=self.outcome_metric))
             )
             self.history['coords'].append(

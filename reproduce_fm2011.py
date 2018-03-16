@@ -20,8 +20,6 @@ are updated with replacement," so that "the same agent can be selected in two
 consecutive time steps." Like I have done, for FM2011, "An iteration
 corresponds to $N$ time steps, where $N$ is the number of individuals in the
 population. Throughout this article we assume N=100."
-
-So apparently I need to update how I update. But that's annoying! Oh well.
 '''
 
 from experiments.within_box import BoxedCavesExperiment
@@ -32,8 +30,15 @@ def figure_10():
 
     p. 168
     '''
-
     # Set up
+    n_caves = 20
+    n_per_cave = 5
+    K = 2
+    # Connected caveman with no randomization.
+    cc = BoxedCavesExperiment(n_caves, n_per_cave, 1.0, K=K)
+    # Connected caveman with short-range ties added randomly.
+
+    # Connected caveman with any-range ties added randomly.
 
     # Save figure.
     pass

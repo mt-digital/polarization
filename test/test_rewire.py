@@ -11,10 +11,11 @@ import unittest
 from copy import deepcopy
 from nose.tools import eq_, ok_
 
-from macy import (
-    Agent, weight, raw_opinion_update_vec, opinion_update_vec, polarization,
-    Network
-)
+from macy import Network, Experiment
+
+
+def _count_seq(seq):
+    return sum(1 for _ in seq)
 
 
 class TestRewiring(unittest.TestCase):
@@ -22,9 +23,24 @@ class TestRewiring(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_connected_caveman_rewire(self):
+    def test_add_random_edges(self):
         '''
-        Rewiring should conserve number of neighbors for all agents and swap some edges.
+        Add random edges as done in Flache and Macy (2011)
+        '''
+        for n_edges_added in [10, 20, 50, 100, 200]:
+
+            experiment = Experiment(20, 5)
+
+            n_edges_pre = _count_seq(experiment.network.graph.edges())
+            experiment.add_random_edges(n_edges_added)
+
+            n_edges_post = _count_seq(experiment.network.graph.edges())
+            eq_(n_edges_pre + n_edges_added, n_edges_post,
+                'number of new edges not as expected')
+
+    def test_connected_caveman_dellaposta_rewire(self):
+        '''
+        Rewiring from DellaPosta, et al., (2015) should conserve number of neighbors for all agents and swap some edges.
         '''
         # Initialize graph to be copied and randomized.
         cc = nx.connected_caveman_graph(10, 5)
@@ -39,7 +55,7 @@ class TestRewiring(unittest.TestCase):
             for cxn_prob in np.arange(0.1, 0.5, 0.1):
 
                 net = Network(deepcopy(cc))
-                net.randomize_edges(cxn_prob)
+                net.rewire_edges(cxn_prob)
 
                 num_rand = [sum(1 for _ in nx.all_neighbors(net.graph, n))
                             for n in net.graph.nodes()]
