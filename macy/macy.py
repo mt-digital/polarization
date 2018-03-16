@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 import os
 import random
+import secrets
 
 from collections import OrderedDict
 from copy import deepcopy
@@ -21,6 +22,7 @@ class Agent:
     def __init__(self, n_opinions=2, cave=None, opinion_fill='random'):
 
         self.opinions = np.random.uniform(low=-1.0, high=1.0, size=2)
+        self.weights = None
         self.cave = cave
 
 
@@ -46,10 +48,14 @@ class Network(nx.Graph):
             if i != j
         ]
 
-        # all pairs of vertices with current neighbors removed
-        # current_edges = self.graph.edges()
+        self.n_nodes = n_nodes
 
-        self.non_neighbors = deepcopy(self.possible_edges)
+    def add_random_edges(self, n_edges=20):
+        '''
+        FM2011 add 20 edges randomly and to immediate cave "to the right".
+        This will add n_edges randomly.
+        '''
+        pass
 
     def randomize_edges(self, rewire_prob, percolation_limit=False):
         '''
@@ -94,9 +100,6 @@ class Network(nx.Graph):
             (rewire_prob * 0.5) * self.graph.number_of_nodes()
         ))
 
-        # import ipdb
-        # ipdb.set_trace()
-
         for _ in range(rewire_number):
             # Get the edges to be swapped and swap them.
             e1, e2 = get_swap_edges(edges_copy, self.graph.edges())
@@ -109,19 +112,29 @@ class Network(nx.Graph):
     # Actually this is doing 100 FM2011 iterations every time, one for each
     # agent.
     def iterate(self, noise_level=0.0):
+        '''
+        See bottom of p. 155 to p. 156. Each iteration in for-loop below
+        is one time step. N time steps are one "iteration" in the model.
+        N is the number of agents, but each agent is not necessarily updated.
+        When an agent is selected for updating, its opinions or the weights
+        associated with each of its neighbors are updated but not both.
+        '''
+        # Select n_nodes with replacement to update.
+        node_list = list(self.graph.nodes())
+        update_nodes = np.random.choice(node_list, size=self.n_nodes)
 
-        # asynchronous updating
-        nodes = list(self.graph.nodes())
-        # TODO: don't need to shuffle every time do we?
-        # Seems we could shuffle once, go through all shuffled nodes, then
-        # shuffle again.
-        shuffle(nodes)
-
-        for agent in nodes:
-            # This could be slow if it has to compute it every time.
+        for agent in update_nodes:
+            # Update either agent opinions or weights depending on flip.
+            flip = secrets.choice([False, True])
+            # TODO make neighbors an attribute of agent and make functions
+            # below into Agent methods.
             neighbors = self.graph.neighbors(agent)
-            agent.opinions = opinion_update_vec(agent, neighbors,
-                                                noise_level=noise_level)
+
+            if flip:
+                agent.opinions = opinion_update_vec(agent, neighbors,
+                                                    noise_level=noise_level)
+            else:
+                update_weights(agent, neighbors)
 
     def draw(self):
         nx.draw_circular(self.graph)
@@ -151,8 +164,15 @@ class Experiment:
         self.network = Network(relabelled_graph)
         del network
 
+        i = 0
+        for agent in self.network.graph.nodes():
+            neighbors = self.network.graph.neighbors(agent)
+            update_weights(agent, neighbors)
+            i += 1
+        print(i)
+
         # History will store each timestep's polarization measure.
-        self.history = {'polarization': []}
+        self.history = {'polarization': [], 'coords': []}
         self.iterations = 0
         self.n_caves = n_caves
         self.outcome_metric = outcome_metric
@@ -163,24 +183,19 @@ class Experiment:
     #         add_cxn_prob, percolation_limit=percolation_limit)
 
     def iterate(self, n_steps=1, noise_level=0.0):
+
         from progressbar import ProgressBar
         bar = ProgressBar()
+
         for i in bar(range(n_steps)):
 
             self.history['polarization'].append(
                 (i,
                  polarization(self.network.graph, metric=self.outcome_metric))
             )
-            # self.history.update(
-            #     {
-            #         self.iterations: {
-            #             'polarization': polarization(self.network.graph),
-            #             # 'opinions': [agent.opinions for agent in
-            #             #              deepcopy(sorted(self.network.graph.nodes()))]
-            #         }
-            #     }
-            # )
-
+            self.history['coords'].append(
+                [n.opinions for n in self.network.graph.nodes()]
+            )
             self.network.iterate(noise_level=noise_level)
             self.iterations += 1
 
@@ -201,12 +216,11 @@ class Experiment:
         metadata = dict(
             title='Flache & Macy Animation ' + movie_name,
             artist='Matthew A. Turner',
-            comment='See https://github.com/mtpain/polarization for more info'
+            comment='See https://github.com/mt-digital/polarization for more info'
         )
 
         writer = ffmpeg_writer(fps=fps, metadata=metadata)
 
-        hist = self.history
         fig = plt.figure()
         plt.xlim(-1.1, 1.1)
         plt.ylim(-1.1, 1.1)
@@ -223,21 +237,24 @@ class Experiment:
         ax.set_aspect('equal')
 
         with writer.saving(fig, movie_name, dpi):
+            pol_hist = self.history['polarization']
+            coords_hist = self.history['coords']
+            for i, pol in pol_hist:
 
-            for i in range(max(hist.keys())):
-
-                # plt.title('Polarization: {:.2f}\nIteration: {}'.format(
-                #         hist[i]['polarization'], i
-                #     )
-                # )
-
-                cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
-
-                for idx, l in enumerate(cave_plots):
-                    x, y = cave_opinions[idx]
-                    l.set_data(x, y)
-
+                coords = coords_hist[i]
+                plt.title('Polarization: {:.2f}\nIteration: {}'.format(
+                        pol, i
+                    )
+                )
+                x = [el[0] for el in coords]
+                y = [el[1] for el in coords]
+                l.set_data(x, y)
                 writer.grab_frame()
+
+                # cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
+
+                # for idx, l in enumerate(cave_plots):
+                #     x, y = cave_opinions[idx]
 
 
 def get_opinions_xy(opinions):
@@ -247,7 +264,6 @@ def get_opinions_xy(opinions):
 def get_cave_opinions_xy(agents, n_caves=20):
 
     return {
-
         i: get_opinions_xy(
                 [
                     agent.opinions for agent in agents
@@ -258,35 +274,7 @@ def get_cave_opinions_xy(agents, n_caves=20):
     }
 
 
-def experiment(n_caves, n_agents, add_cxn_prob=.003, iterations=1000):
-
-    network = Network(caves(n_caves, n_agents))
-    network.add_random_connections(add_cxn_prob=add_cxn_prob)
-
-    for _ in range(iterations):
-        network.iterate()
-
-    return network
-
-
-def caves(n_caves=20, n_agents=5, connected=False):
-    '''
-    Make a totally connected cave with n_agents
-    '''
-    cave_fun = nx.connected_caveman_graph if connected else nx.caveman_graph
-    relabelled_graph = nx.relabel_nodes(
-        cave_fun(n_caves, n_agents),
-        {i: Agent() for i in range(n_caves * n_agents)}
-    )
-
-    # for idx, subg in enumerate(nx.connected_components(relabelled_graph)):
-    #     for agent in subg:
-    #         agent.cave = idx + 1
-
-    return relabelled_graph
-
-
-def weight(a1, a2, nonnegative=False, distance_metric='fm2011'):
+def calculate_weight(a1, a2, nonnegative=False, distance_metric='fm2011'):
     '''
     Calculate connection weight between two agents (Equation [1])
     '''
@@ -312,13 +300,26 @@ def weight(a1, a2, nonnegative=False, distance_metric='fm2011'):
         return cosine_similarity(o1, o2)
 
 
+def update_weights(agent, neighbors):
+    '''
+    Update agent weights in-place. TODO make this an Agent method.
+    '''
+    agent.weights = {
+        neighbor: calculate_weight(agent, neighbor)
+        for neighbor in neighbors
+    }
+    # print('updated {} with {}'.format(agent, agent.weights))
+
+
 def raw_opinion_update_vec(agent, neighbors, distance_metric='fm2011'):
 
+    # import ipdb
+    # ipdb.set_trace()
     neighbors = list(neighbors)
     factor = (1.0 / (2.0 * len(neighbors)))
 
     return factor * np.sum(
-        weight(agent, neighbor, distance_metric=distance_metric) *
+        agent.weights[neighbor] *
         (neighbor.opinions - agent.opinions)
 
         for neighbor in neighbors
@@ -349,45 +350,23 @@ def polarization(graph, metric='fm2011'):
     Returns:
         (float) : variance of all pairwise distances.
     '''
-    # np_norm = np.linalg.norm
-    # if metric == 'fm2011':
-    #     distance = fm2011_distance
-    # elif metric == 'euclidian':
-    #     distance = lambda x, y: np_norm(y.opinions - x.opinions, ord=2)
-    # elif metric == 'manhattan':
-    #     distance = lambda x, y: np_norm(y.opinions - x.opinions, ord=1)
-
+    # List of opinion coordinates for all agents.
     X = [n.opinions for n in graph.nodes()]
-    K = len(X[0])
+    # To be used in slicing out the upper triangle of the distance matrix.
     N = len(X)
+
     if metric == 'fm2011':
+        # FM2011 distance metric contains an averaging factor over features.
+        K = len(X[0])
+        # The FM2011 distance is just cityblock/manhattan/L1 distance
+        # scaled by 1/K.
         distances = (1.0 / K) * cdist(X, X, metric='cityblock')
     else:
         distances = cdist(X, X, metric=metric)
 
     # FM2011 use the variance over non-repeating d_ij with i≠j, as
     # best I can tell. Their explanation/notation is confusing, see p. 156.
+    # I believe by taking either the upper or lower triangle of the distance
+    # matrix implements the summation; the triangles are equivalent. k=1
+    # drops the diagonal.
     return distances[np.triu_indices(N, k=1)].var()
-
-    # L = len(nodes)
-    # distances = np.zeros((L, L))
-
-    #     for i in range(L):
-    #         for j in range(L):
-    #             distances[i, j] = distance(nodes[i], nodes[j])
-
-    # d_expected = distances.sum() / (L*(L-1))
-
-    # d_sub_mean = (distances - d_expected)
-    # for i in range(L):
-    #     d_sub_mean[i, i] = 0.0
-
-    # d_sub_mean_sq = np.sum(np.power(d_sub_mean, 2))
-
-    # return (1/(L*(L-1))) * d_sub_mean_sq
-
-
-def fm2011_distance(agent_1, agent_2):
-
-    n_ops = len(agent_1.opinions)
-    return (1.0 / n_ops) * np.sum(np.abs(agent_1.opinions - agent_2.opinions))
