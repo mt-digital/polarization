@@ -23,19 +23,34 @@ class TestRewiring(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_add_short_random_edges(self):
+        '''
+        Correct number of short-range random edges added and no agent index diff greater than 1
+        '''
+        for n_edges_add in [1, 2, 5, 10, 20]:
+
+            experiment = Experiment(20, 5)
+            n_edges_pre = _count_seq(experiment.network.graph.edges())
+
+            experiment.add_shortrange_random_edges(n_edges_add)
+            n_edges_post = _count_seq(experiment.network.graph.edges())
+
+            eq_(n_edges_pre + n_edges_add, n_edges_post,
+                'number of new edges not as expected')
+
     def test_add_random_edges(self):
         '''
         Add random edges as done in Flache and Macy (2011)
         '''
-        for n_edges_added in [10, 20, 50, 100, 200]:
+        for n_edges_add in [5, 10, 20, 50, 100, 200]:
 
             experiment = Experiment(20, 5)
 
             n_edges_pre = _count_seq(experiment.network.graph.edges())
-            experiment.add_random_edges(n_edges_added)
+            experiment.add_random_edges(n_edges_add)
 
             n_edges_post = _count_seq(experiment.network.graph.edges())
-            eq_(n_edges_pre + n_edges_added, n_edges_post,
+            eq_(n_edges_pre + n_edges_add, n_edges_post,
                 'number of new edges not as expected')
 
     def test_connected_caveman_dellaposta_rewire(self):

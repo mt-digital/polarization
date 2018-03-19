@@ -3,8 +3,8 @@ import numpy as np
 import unittest
 
 from macy import (
-    Agent, weight, raw_opinion_update_vec, opinion_update_vec, polarization,
-    Network
+    Agent, calculate_weight,
+    raw_opinion_update_vec, opinion_update_vec, polarization
 )
 
 
@@ -32,22 +32,22 @@ class TestBasicCalculations(unittest.TestCase):
 
         # self.test_network = _make_test_network(2)
 
-    def test_weight(self):
+    def test_calculate_weight(self):
 
         num = 0.5 + 0.3
         expected = 1 - (num/2.0)
-        assert weight(self.a1_2, self.a2_2) == expected
+        assert calculate_weight(self.a1_2, self.a2_2) == expected
 
         num = 0.5 + 0.3 + 1.5
         expected = 1 - (num/3.0)
-        assert weight(self.a1_3, self.a2_3) == expected
+        assert calculate_weight(self.a1_3, self.a2_3) == expected
 
     def test_raw_state_update(self):
 
         num_neighbors_fac = 1.0 / (2.0 * 3)
-        w_12 = weight(self.a1_2, self.a2_2)
-        w_13 = weight(self.a1_2, self.a3_2)
-        w_14 = weight(self.a1_2, self.a4_2)
+        w_12 = calculate_weight(self.a1_2, self.a2_2)
+        w_13 = calculate_weight(self.a1_2, self.a3_2)
+        w_14 = calculate_weight(self.a1_2, self.a4_2)
 
         S = (w_12*np.array([.5, -.3])) + \
             (w_13*np.array([.3, .1])) + \
@@ -107,7 +107,7 @@ class TestBasicCalculations(unittest.TestCase):
         a4 = self.a4_2
 
         g.add_edges_from([
-            (e1, e2, {'weight': weight(e1, e2)})
+            (e1, e2, {'weight': calculate_weight(e1, e2)})
             for e1, e2 in [(a1, a2), (a1, a4), (a2, a3), (a3, a4)]
         ])
 
@@ -117,29 +117,3 @@ class TestBasicCalculations(unittest.TestCase):
             expected, calculated,
             err_msg='calc: {}\nexpec: {}'.format(calculated, expected)
         )
-
-
-class TestNetworkIterations(unittest.TestCase):
-
-    def setUp(self):
-
-        self.a1_2 = Agent()
-        self.a2_2 = Agent()
-        self.a3_2 = Agent()
-        self.a4_2 = Agent()
-
-        a1 = self.a1_2
-        a2 = self.a2_2
-        a3 = self.a3_2
-        a4 = self.a4_2
-
-        self.a1_2.opinions = np.array([-1.0, 0.5])
-        self.a2_2.opinions = np.array([-.5, .2])
-        self.a3_2.opinions = np.array([-.7, .6])
-        self.a4_2.opinions = np.array([-.7, .4])
-
-        self.graph = nx.Graph()
-        self.graph.add_edges_from([
-            (e1, e2, {'weight': weight(e1, e2)})
-            for e1, e2 in [(a1, a2), (a1, a4), (a2, a3), (a3, a4)]
-        ])

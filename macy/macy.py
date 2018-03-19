@@ -45,6 +45,38 @@ class Network(nx.Graph):
 
         self.n_nodes = n_nodes
 
+    def add_shortrange_random_edges(self, n_edges, n_caves):
+        '''
+        See p. 166 of FM2011
+        '''
+        for _ in range(n_edges):
+            edge_added = False
+            while not edge_added:
+                # Select focal cave.
+                cave_idx = random.randint(0, n_caves - 1)
+                # Cave index "on the right."
+                next_cave_idx = cave_idx + 1 % n_caves - 1
+                # Select agent from focal cave.
+                focal_agents = [
+                    agent for agent in self.graph.nodes()
+                    if self.graph.node[agent]['cave_idx'] == cave_idx
+                ]
+                focal_agent = random.choice(focal_agents)
+                # Select agent from cave on the right.
+                next_cave_agents = [
+                    agent for agent in self.graph.nodes()
+                    if self.graph.node[agent]['cave_idx'] == next_cave_idx
+                ]
+                # import ipdb
+                # ipdb.set_trace()
+                new_neighbor_agent = random.choice(next_cave_agents)
+
+                # Check if the edge already exists in the graph.
+                if not self.graph.has_edge(focal_agent, new_neighbor_agent):
+                    # If not, add an edge between them.
+                    self.graph.add_edge(focal_agent, new_neighbor_agent)
+                    edge_added = True
+
     def add_random_edges(self, n_edges):
         '''
         FM2011 add 20 edges randomly and to immediate cave "to the right".
@@ -214,8 +246,8 @@ class Experiment:
         self.n_caves = n_caves
         self.outcome_metric = outcome_metric
 
-    def add_shortrange_edges(self, n_edges=20):
-        pass
+    def add_shortrange_random_edges(self, n_edges):
+        self.network.add_shortrange_random_edges(n_edges, self.n_caves)
 
     def add_random_edges(self, n_edges):
         self.network.add_random_edges(n_edges)
