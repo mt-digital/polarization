@@ -18,7 +18,7 @@ class Agent:
     def __init__(self, n_opinions=2, opinion_fill='random'):
 
         self.opinions = np.random.uniform(low=-1.0, high=1.0, size=2)
-        self.weights = None
+        self.weights = {}
 
 
 class Network(nx.Graph):
@@ -76,6 +76,11 @@ class Network(nx.Graph):
                     # If not, add an edge between them.
                     self.graph.add_edge(focal_agent, new_neighbor_agent)
                     edge_added = True
+
+        # Update neighbors and weights.
+        for agent in self.graph.nodes():
+            neighbors = self.graph.neighbors(agent)
+            update_weights(agent, neighbors)
 
     def add_random_edges(self, n_edges):
         '''
@@ -255,12 +260,17 @@ class Experiment:
     def rewire_edges(self, rewire_prob=0.1):
         self.network.rewire_edges(rewire_prob)
 
-    def iterate(self, n_steps=1, noise_level=0.0):
+    def iterate(self, n_steps=1, noise_level=0.0, verbose=True):
 
         from progressbar import ProgressBar
         bar = ProgressBar()
 
-        for i in bar(range(n_steps)):
+        if verbose:
+            it = bar(range(n_steps))
+        else:
+            it = range(n_steps)
+
+        for i in it:
 
             self.history['polarization'].append(
                 (self.iterations,

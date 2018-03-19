@@ -49,6 +49,10 @@ class TestBasicCalculations(unittest.TestCase):
         w_13 = calculate_weight(self.a1_2, self.a3_2)
         w_14 = calculate_weight(self.a1_2, self.a4_2)
 
+        self.a1_2.weights[self.a2_2] = w_12
+        self.a1_2.weights[self.a3_2] = w_13
+        self.a1_2.weights[self.a4_2] = w_14
+
         S = (w_12*np.array([.5, -.3])) + \
             (w_13*np.array([.3, .1])) + \
             (w_14*np.array([.3, -.1]))
@@ -64,6 +68,14 @@ class TestBasicCalculations(unittest.TestCase):
 
     def test_scaled_state_update(self):
         neighbors = [self.a2_2, self.a3_2, self.a4_2]
+
+        w_12 = calculate_weight(self.a1_2, self.a2_2)
+        w_13 = calculate_weight(self.a1_2, self.a3_2)
+        w_14 = calculate_weight(self.a1_2, self.a4_2)
+
+        self.a1_2.weights[self.a2_2] = w_12
+        self.a1_2.weights[self.a3_2] = w_13
+        self.a1_2.weights[self.a4_2] = w_14
 
         raw_update_vec = raw_opinion_update_vec(self.a1_2, neighbors)
 

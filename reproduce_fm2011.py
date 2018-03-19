@@ -25,7 +25,7 @@ population. Throughout this article we assume N=100."
 from experiments.within_box import BoxedCavesExperiment
 
 
-def figure_10():
+def figure_10(n_trials=3):
     '''
 
     p. 168
@@ -34,14 +34,39 @@ def figure_10():
     n_caves = 20
     n_per_cave = 5
     K = 2
-    # Connected caveman with no randomization.
-    cc = BoxedCavesExperiment(n_caves, n_per_cave, 1.0, K=K)
-    # Connected caveman with short-range ties added randomly.
+    n_iter = 4000
 
-    # Connected caveman with any-range ties added randomly.
+    experiments = {
+        'connected caveman': [],
+        'random short-range': [],
+        'random any-range': []
+    }
+
+    for i in range(n_trials):
+        # Connected caveman with no randomization.
+        cc = BoxedCavesExperiment(n_caves, n_per_cave, 1.0, K=K)
+        cc.iterate(n_iter)
+        experiments['connected caveman'].append(cc)
+
+        # Add the same number random short-range or long-range ties.
+        n_edges = 20
+
+        # Connected caveman with short-range ties added randomly.
+        ccsrt = BoxedCavesExperiment(n_caves, n_per_cave, 1.0, K=K)
+        ccsrt.iterate(2000)
+        ccsrt.add_shortrange_random_edges(n_edges)
+        ccsrt.iterate(2000)
+        experiments['random short-range'].append(ccsrt)
+
+        # Connected caveman with any-range ties added randomly.
+        ccrt = BoxedCavesExperiment(n_caves, n_per_cave, 1.0, K=K)
+        ccrt.iterate(2000)
+        ccrt.add_random_edges(n_edges)
+        ccrt.iterate(2000)
+        experiments['random any-range'].append(ccrt)
 
     # Save figure.
-    pass
+    return experiments
 
 
 def figure_11b():
