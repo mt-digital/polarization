@@ -76,6 +76,14 @@ def figure_10(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
     return experiments
 
 
+def figure_11(n_trials=3, n_iter=4000, cave_sizes=[3, 5, 10, 20, 30, 40, 50],
+              verbose=True, hdf5_filename=None):
+    plt.gca().xaxis.grid(True)
+    pass
+
+def figure_12(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
+    pass
+
 def persist_experiments(experiments, hdf_filename=None, append_datetime=True):
     '''
     Persist the three experiments to HDF5.
@@ -133,24 +141,41 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=True):
             )
 
 
-def plot_experiments_hdf(hdf_filename):
+def plot_mean_timeseries_hdf(hdf_filename, save_name=None,
+                             low_pct=25, high_pct=75):
 
-    fig, axes = plt.subplots(3, sharex=True)
+    # fig, axes = plt.subplots(3, sharex=True)
+    colors = ['r', 'b', 'g']
     # Keep track of maximum polarization to adjust axes.
     max_polarization = 0.0
+    fig, ax = plt.subplots()
     with h5py.File(hdf_filename, 'r') as hf:
 
         for idx, key in enumerate(hf.keys()):
 
-            axes[idx].set_title(key)
             polarizations = hf[key + '/polarization']
-            max_polarization = max(np.max(polarizations), max_polarization)
 
-            for pol in polarizations:
-                axes[idx].plot(pol, '.')
+            plow = np.percentile(polarizations, low_pct, axis=0)
+            phigh = np.percentile(polarizations, high_pct, axis=0)
+            pmean = np.mean(polarizations, axis=0)
 
-    for ax in axes:
-        ax.set_ylim(0.0, max_polarization + 0.05)
+            max_polarization = max(np.max(phigh), max_polarization)
+
+            plt.plot(plow, color=colors[idx], ls='--')
+            plt.plot(phigh, color=colors[idx], ls='--')
+            plt.plot(pmean, color=colors[idx], label=key)
+
+    plt.ylim(0.0, max_polarization + 0.05)
+
+    plt.legend(loc='best')
+
+    plt.xlabel('Iteration')
+    plt.ylabel('Polarization')
+    ax.grid(axis='y', zorder=0)
+
+    if save_name is not None:
+        from matplotlib2tikz import save as tikz_save
+        tikz_save(hdf_filename.replace('.hdf5', '.tex'))
 
 
 def plot_experiments(experiments):
