@@ -84,7 +84,7 @@ def figure_11(n_trials=3, n_iter=4000, cave_sizes=[3, 5, 10, 20, 30, 40, 50],
 def figure_12(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
     pass
 
-def persist_experiments(experiments, hdf_filename=None, append_datetime=True):
+def persist_experiments(experiments, hdf_filename=None, append_datetime=False):
     '''
     Persist the three experiments to HDF5.
     '''
