@@ -74,5 +74,5 @@ experiments = {
 persist_experiments(
     experiments,
     hdf_filename='multiprocessing_persist.hdf5',
-    metadata={'K': 2}
+    metadata={'K': 2, 'n_per_cave': 5}
 )
