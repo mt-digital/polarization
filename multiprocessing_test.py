@@ -71,4 +71,8 @@ experiments = {
     'random any-range': list(any_experiments)
 }
 
-persist_experiments(experiments, 'multiprocessing_persist.hdf5')
+persist_experiments(
+    experiments,
+    hdf_filename='multiprocessing_persist.hdf5',
+    metadata={'K': 2}
+)
