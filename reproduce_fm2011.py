@@ -23,12 +23,13 @@ population. Throughout this article we assume N=100."
 '''
 import h5py
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
+import os
 
 from datetime import datetime
+from glob import glob
+
 from experiments.within_box import BoxedCavesExperiment
-from macy import get_opinions_xy
 
 
 def figure_10(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
@@ -155,7 +156,7 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
             )
 
 
-def plot_figure10b(hdf_filename, save_name=None,
+def plot_figure10b(hdf, save_name=None,
                    low_pct=25, high_pct=75):
 
     # fig, axes = plt.subplots(3, sharex=True)
@@ -163,21 +164,23 @@ def plot_figure10b(hdf_filename, save_name=None,
     # Keep track of maximum polarization to adjust axes.
     max_polarization = 0.0
     fig, ax = plt.subplots()
-    with h5py.File(hdf_filename, 'r') as hf:
 
-        for idx, key in enumerate(hf.keys()):
+    if type(hdf) is str:
+        hdf = h5py.File(hdf, 'r')
 
-            polarizations = hf[key + '/polarization']
+    for idx, key in enumerate(hdf.keys()):
 
-            plow = np.percentile(polarizations, low_pct, axis=0)
-            phigh = np.percentile(polarizations, high_pct, axis=0)
-            pmean = np.mean(polarizations, axis=0)
+        polarizations = hdf[key + '/polarization']
 
-            max_polarization = max(np.max(phigh), max_polarization)
+        plow = np.percentile(polarizations, low_pct, axis=0)
+        phigh = np.percentile(polarizations, high_pct, axis=0)
+        pmean = np.mean(polarizations, axis=0)
 
-            plt.plot(plow, color=colors[idx], ls='--')
-            plt.plot(phigh, color=colors[idx], ls='--')
-            plt.plot(pmean, color=colors[idx], label=key)
+        max_polarization = max(np.max(phigh), max_polarization)
+
+        plt.plot(plow, color=colors[idx], ls='--')
+        plt.plot(phigh, color=colors[idx], ls='--')
+        plt.plot(pmean, color=colors[idx], label=key)
 
     plt.ylim(0.0, max_polarization + 0.05)
 
@@ -187,9 +190,32 @@ def plot_figure10b(hdf_filename, save_name=None,
     plt.ylabel('Polarization')
     ax.grid(axis='y', zorder=0)
 
-    if save_name is not None:
-        from matplotlib2tikz import save as tikz_save
-        tikz_save(hdf_filename.replace('.hdf5', '.tex'))
+
+def _hdfs_dict(hdfs_dir, key):
+    '''
+    HDFs from different runs are being saved with a UUID-based filename instead
+    of some sort of identifying filename. Then the parameters are read through
+    HDF attributes. This will use the relevant parameter or parameters to
+    build a dictionary for keyed access to particular HDF files.
+
+    Arguments:
+        hdfs_dir (str): location of HDF files
+        key (str): attribute name to use as key
+
+    Example:
+        >>> hdfs_dict = _hdfs_dict('path/to/data', 'K')
+        >>> three_feature_hdf = hdfs_dict[3]  # get experiment with K=3
+    '''
+    hdfs_filelist = glob(os.path.join(hdfs_dir, '*'))
+    hdfs = [h5py.File(f, 'r') for f in hdfs_filelist]
+    return {
+        hdf.attrs[key]: hdf for hdf in hdfs
+    }
+
+
+def close_hdfdict(d):
+    for hdf in d.values():
+        hdf.close()
 
 
 def plot_figure11b():
