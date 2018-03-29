@@ -11,6 +11,6 @@
 
 printf "\nPolarization experiment started at `uptime`\n"
 
-polexp reproduce_fm2011 --n_iter=$N_ITER --network=$NETWORK --K=$K --output-dir=$OUTPUT_DIR
+polexp   --n_iter=$N_ITER --K=2 --output-dir=$OUTPUT_DIR
 
 printf "\nJob finished at `uptime`\n"
