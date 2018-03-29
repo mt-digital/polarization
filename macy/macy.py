@@ -273,14 +273,15 @@ class Experiment:
         for i in it:
 
             self.history['polarization'].append(
-                (self.iterations,
-                 polarization(self.network.graph, metric=self.outcome_metric))
+                 polarization(self.network.graph, metric=self.outcome_metric)
             )
-            self.history['coords'].append(
-                [n.opinions for n in self.network.graph.nodes()]
-            )
+            # self.history['coords'].append(
+            #     [n.opinions for n in self.network.graph.nodes()]
+            # )
             self.network.iterate(noise_level=noise_level)
             self.iterations += 1
+
+        self.history['final coords'] = [n.opinions for n in self.network.graph.nodes()]
 
     def make_opinion_movie(self, movie_name=None, fps=15, dpi=150):
         '''

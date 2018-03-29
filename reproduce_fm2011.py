@@ -88,7 +88,11 @@ def figure_12(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
 def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                         metadata=None):
     '''
-    Persist the three experiments to HDF5.
+    Persist the three experiments to HDF5. Originally this accessed the classes
+    themselves, but the classes are becoming too big to pass through
+    multiprocessing interface on mapping. Eventually each experiment trial
+    will have its own HDF reference, and these can be concatenated or
+    something like that.
     '''
 
     nowstr = datetime.now().isoformat()
@@ -121,16 +125,18 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
             # polarization itself. XXX For some reason I am logging
             # which iteration, which is identical to the index, of course.
             # Should fix that sometime XXX.
-            polarizations = np.array([
-                get_opinions_xy(trial.history['polarization'])[1]
-                for trial in trials
-            ])
+            polarizations = np.array(
+                [trial['polarization'] for trial in trials]
+            )
             # Get timeseries of agent opinion coordinates for every trial.
-            coords = np.array([trial.history['coords'] for trial in trials])
+            # coords = np.array([trial.history['coords'] for trial in trials])
+            final_coords = np.array(
+                [trial['final coords'] for trial in trials]
+            )
             # Get adjacency matrix of each trial's graph.
-            adjacencies = np.array([
-                nx.to_numpy_matrix(trial.network.graph) for trial in trials
-            ])
+            adjacencies = np.array(
+                [trial['graph'] for trial in trials]
+            )
 
             hf.create_dataset(
                 experiment_name + '/polarization',
@@ -138,12 +144,12 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                 compression='gzip'
             )
             hf.create_dataset(
-                experiment_name + '/coords',
-                data=coords,
+                experiment_name + '/final coords',
+                data=final_coords,
                 compression='gzip'
             )
             hf.create_dataset(
-                experiment_name + '/adjacency matrices',
+                experiment_name + '/graph',
                 data=adjacencies,
                 compression='gzip'
             )

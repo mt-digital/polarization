@@ -11,9 +11,6 @@
 
 printf "\nPolarization experiment started at `uptime`\n"
 
-polexp box_experiment \
-    --boxwidth-min=$BW_MIN --boxwidth-max=1.001 --boxwidth-step=0.4 \
-    --noise-level-min=0.0 --noise-level-max=2.01 --noise-level-step=0.1 \
-    --output-dir=$OUTPUT_DIR
+polexp   --n_iter=$N_ITER --K=2 --output-dir=$OUTPUT_DIR
 
 printf "\nJob finished at `uptime`\n"
