@@ -149,8 +149,8 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
             )
 
 
-def plot_mean_timeseries_hdf(hdf_filename, save_name=None,
-                             low_pct=25, high_pct=75):
+def plot_figure10b(hdf_filename, save_name=None,
+                   low_pct=25, high_pct=75):
 
     # fig, axes = plt.subplots(3, sharex=True)
     colors = ['r', 'b', 'g']
@@ -186,73 +186,9 @@ def plot_mean_timeseries_hdf(hdf_filename, save_name=None,
         tikz_save(hdf_filename.replace('.hdf5', '.tex'))
 
 
-def plot_experiments(experiments):
-    # titles = [
-    #     'Connected caveman (CC)',
-    #     'CC with random short-range edges',
-    #     'CC with random edges of any range'
-    # ]
-    fig, axes = plt.subplots(3, sharex=True)
-
-    for idx, exp_tup in enumerate(experiments.items()):
-
-        # import ipdb
-        # ipdb.set_trace()
-        experiment_name = exp_tup[0]
-        experiment = exp_tup[1]
-        pols = [
-            get_opinions_xy(trial.history['polarization'])
-            for trial in experiment
-        ]
-        axes[idx].set_title(experiment_name)
-        for pol in pols:
-            axes[idx].plot(*pol, '.-')
-
-
-def plot_experiments(experiments):
-    # titles = [
-    #     'Connected caveman (CC)',
-    #     'CC with random short-range edges',
-    #     'CC with random edges of any range'
-    # ]
-    fig, axes = plt.subplots(3, sharex=True)
-
-    for idx, exp_tup in enumerate(experiments.items()):
-
-        # import ipdb
-        # ipdb.set_trace()
-        experiment_name = exp_tup[0]
-        experiment = exp_tup[1]
-        pols = [
-            get_opinions_xy(trial.history['polarization'])
-            for trial in experiment
-        ]
-        axes[idx].set_title(experiment_name)
-        for pol in pols:
-            axes[idx].plot(*pol, '.-')
-
-
-def figure_11b():
-    '''
-    p. 170
-    '''
-    # Set up
-
-    # Save figure.
+def plot_figure11b():
     pass
 
 
-def figure_12b():
-    '''
-    p. 171
-    '''
-    # Set up
-
-    # Save figure.
+def plot_figure12b():
     pass
-
-
-if __name__ == '__main__':
-    figure_10()
-    figure_11b()
-    figure_12b()
