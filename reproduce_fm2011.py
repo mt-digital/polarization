@@ -211,6 +211,7 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
     for key_idx, key in enumerate(keys):
 
         y_vals = np.zeros(len(x))
+        y_std = np.zeros(len(x))
         yerr_low = np.zeros(len(x))
         yerr_high = np.zeros(len(x))
         for x_idx, n_per_cave in enumerate(x):
@@ -226,10 +227,11 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
             yerr_low[x_idx] = p_mean - p_low
             yerr_high[x_idx] = p_high - p_mean
             y_vals[x_idx] = p_mean
+            y_std[x_idx] = np.std(final_polarizations)
 
         yerr = np.vstack([yerr_low, yerr_high])
         if stddev:
-            plt.errorbar(range(len(x)), y_vals, yerr=np.std(y_vals),
+            plt.errorbar(range(len(x)), y_vals, yerr=y_std,
                          marker='o', ms=8,
                          color=colors[key_idx], label=key, capsize=5,
                          alpha=0.65)
@@ -240,6 +242,8 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
 
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best')
+    plt.xlabel('cavesize')
+    plt.ylabel('polarization')
     if full_ylim:
         plt.axhline(y=.25, color='grey', ls='--', lw=1)
         plt.axhline(y=.5, color='grey', ls='--', lw=1)
@@ -248,8 +252,65 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
         plt.ylim(0, 1)
 
 
-def plot_figure12b():
-    pass
+def plot_figure12b(data_dir, stddev=True, full_ylim=True):
+    '''
+    This figure plots average final polarization against K, the number of
+    opinion features.
+    '''
+    plt.figure()
+
+    colors = ['r', 'b', 'g']
+
+    x = [1, 2, 3, 5, 10]
+    xlen = len(x)
+
+    hdf_dict = _hdfs_dict(data_dir, 'K')
+
+    keys = ['connected caveman', 'random short-range', 'random any-range']
+    for key_idx, key in enumerate(keys):
+
+        y_vals = np.zeros(xlen)
+        y_std = np.zeros(xlen)
+        yerr_low = np.zeros(xlen)
+        yerr_high = np.zeros(xlen)
+        for x_idx, K in enumerate(x):
+
+            hdf = hdf_dict[K]
+
+            final_polarizations = hdf[key + '/polarization'][:, -1]
+
+            p_low = np.percentile(final_polarizations, 25)
+            p_high = np.percentile(final_polarizations, 75)
+            p_mean = np.mean(final_polarizations)
+
+            yerr_low[x_idx] = p_mean - p_low
+            yerr_high[x_idx] = p_high - p_mean
+            y_vals[x_idx] = p_mean
+            y_std[x_idx] = np.std(final_polarizations)
+
+        yerr = np.vstack([yerr_low, yerr_high])
+        print(np.std(y_vals))
+        if stddev:
+            plt.errorbar(range(len(x)), y_vals, yerr=y_std,
+                         marker='o', ms=8,
+                         color=colors[key_idx], label=key, capsize=5,
+                         alpha=0.65)
+        else:
+            plt.errorbar(range(len(x)), y_vals, yerr=yerr, marker='o', ms=8,
+                         color=colors[key_idx], label=key, capsize=5,
+                         alpha=0.65)
+
+    plt.xticks(range(len(x)), [str(el) for el in x])
+    plt.legend(loc='best')
+    plt.xlabel('K')
+    plt.ylabel('polarization')
+
+    if full_ylim:
+        plt.axhline(y=.25, color='grey', ls='--', lw=1)
+        plt.axhline(y=.5, color='grey', ls='--', lw=1)
+        plt.axhline(y=.75, color='grey', ls='--', lw=1)
+        plt.yticks([0.0, 0.25, 0.5, 0.75, 1.0])
+        plt.ylim(0, 1)
 
 
 def _hdfs_dict(hdfs_dir, key):
