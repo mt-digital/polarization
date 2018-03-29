@@ -191,6 +191,67 @@ def plot_figure10b(hdf, save_name=None,
     ax.grid(axis='y', zorder=0)
 
 
+def plot_figure11b(data_dir, stddev=False, full_ylim=False):
+    '''
+    "cavesize", or `n_per_cave`, on x-axis, average of final polarization for
+    50 trials on the y-axis. x-axis should be evenly spaced with labels
+    for each of the cavesize conditions, in order.
+    '''
+
+    plt.figure()
+
+    colors = ['r', 'b', 'g']
+
+    x = [3, 5, 10, 20, 30, 40]
+
+    hdf_dict = _hdfs_dict(data_dir, 'n_per_cave')
+
+    # Create the datasets to plot with errorbars again at 25% and 75%.
+    keys = ['connected caveman', 'random short-range', 'random any-range']
+    for key_idx, key in enumerate(keys):
+
+        y_vals = np.zeros(len(x))
+        yerr_low = np.zeros(len(x))
+        yerr_high = np.zeros(len(x))
+        for x_idx, n_per_cave in enumerate(x):
+
+            hdf = hdf_dict[n_per_cave]
+
+            final_polarizations = hdf[key + '/polarization'][:, -1]
+
+            p_low = np.percentile(final_polarizations, 25)
+            p_high = np.percentile(final_polarizations, 75)
+            p_mean = np.mean(final_polarizations)
+
+            yerr_low[x_idx] = p_mean - p_low
+            yerr_high[x_idx] = p_high - p_mean
+            y_vals[x_idx] = p_mean
+
+        yerr = np.vstack([yerr_low, yerr_high])
+        if stddev:
+            plt.errorbar(range(len(x)), y_vals, yerr=np.std(y_vals),
+                         marker='o', ms=8,
+                         color=colors[key_idx], label=key, capsize=5,
+                         alpha=0.65)
+        else:
+            plt.errorbar(range(len(x)), y_vals, yerr=yerr, marker='o', ms=8,
+                         color=colors[key_idx], label=key, capsize=5,
+                         alpha=0.65)
+
+    plt.xticks(range(len(x)), [str(el) for el in x])
+    plt.legend(loc='best')
+    if full_ylim:
+        plt.axhline(y=.25, color='grey', ls='--', lw=1)
+        plt.axhline(y=.5, color='grey', ls='--', lw=1)
+        plt.axhline(y=.75, color='grey', ls='--', lw=1)
+        plt.yticks([0.0, 0.25, 0.5, 0.75, 1.0])
+        plt.ylim(0, 1)
+
+
+def plot_figure12b():
+    pass
+
+
 def _hdfs_dict(hdfs_dir, key):
     '''
     HDFs from different runs are being saved with a UUID-based filename instead
@@ -214,13 +275,6 @@ def _hdfs_dict(hdfs_dir, key):
 
 
 def close_hdfdict(d):
+    'Close all open h5py.File objects that are dictionary values'
     for hdf in d.values():
         hdf.close()
-
-
-def plot_figure11b():
-    pass
-
-
-def plot_figure12b():
-    pass
