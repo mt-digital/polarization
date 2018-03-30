@@ -156,19 +156,24 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
             )
 
 
-def plot_figure10b(hdf, save_name=None,
-                   low_pct=25, high_pct=75):
+def plot_figure10b(hdf, low_pct=25, high_pct=75, **kwargs):
 
-    # fig, axes = plt.subplots(3, sharex=True)
+    if 'figsize' in kwargs:
+        fig, ax = plt.subplots(figsize=kwargs['figsize'])
+    else:
+        fig, ax = plt.subplots()
+
     colors = ['r', 'b', 'g']
+
+    keys = ['connected caveman', 'random short-range', 'random any-range']
+
     # Keep track of maximum polarization to adjust axes.
     max_polarization = 0.0
-    fig, ax = plt.subplots()
 
     if type(hdf) is str:
         hdf = h5py.File(hdf, 'r')
 
-    for idx, key in enumerate(hdf.keys()):
+    for idx, key in enumerate(keys):
 
         polarizations = hdf[key + '/polarization']
 
@@ -182,7 +187,7 @@ def plot_figure10b(hdf, save_name=None,
         plt.plot(phigh, color=colors[idx], ls='--')
         plt.plot(pmean, color=colors[idx], label=key)
 
-    plt.ylim(0.0, max_polarization + 0.05)
+    plt.ylim(0.0, 1.0)
 
     plt.legend(loc='best')
 
@@ -191,14 +196,16 @@ def plot_figure10b(hdf, save_name=None,
     ax.grid(axis='y', zorder=0)
 
 
-def plot_figure11b(data_dir, stddev=False, full_ylim=False):
+def plot_figure11b(data_dir, stddev=True, full_ylim=True, **kwargs):
     '''
     "cavesize", or `n_per_cave`, on x-axis, average of final polarization for
     50 trials on the y-axis. x-axis should be evenly spaced with labels
     for each of the cavesize conditions, in order.
     '''
-
-    plt.figure()
+    if 'figsize' in kwargs:
+        plt.figure(figsize=kwargs['figsize'])
+    else:
+        plt.figure()
 
     colors = ['r', 'b', 'g']
 
@@ -242,8 +249,8 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
 
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best')
-    plt.xlabel('cavesize')
-    plt.ylabel('polarization')
+    plt.xlabel('Cavesize')
+    plt.ylabel('Polarization')
     if full_ylim:
         plt.axhline(y=.25, color='grey', ls='--', lw=1)
         plt.axhline(y=.5, color='grey', ls='--', lw=1)
@@ -252,12 +259,15 @@ def plot_figure11b(data_dir, stddev=False, full_ylim=False):
         plt.ylim(0, 1)
 
 
-def plot_figure12b(data_dir, stddev=True, full_ylim=True):
+def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
     '''
     This figure plots average final polarization against K, the number of
     opinion features.
     '''
-    plt.figure()
+    if 'figsize' in kwargs:
+        plt.figure(figsize=kwargs['figsize'])
+    else:
+        plt.figure()
 
     colors = ['r', 'b', 'g']
 
@@ -289,7 +299,6 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True):
             y_std[x_idx] = np.std(final_polarizations)
 
         yerr = np.vstack([yerr_low, yerr_high])
-        print(np.std(y_vals))
         if stddev:
             plt.errorbar(range(len(x)), y_vals, yerr=y_std,
                          marker='o', ms=8,
@@ -303,7 +312,7 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True):
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best')
     plt.xlabel('K')
-    plt.ylabel('polarization')
+    plt.ylabel('Polarization')
 
     if full_ylim:
         plt.axhline(y=.25, color='grey', ls='--', lw=1)
@@ -311,6 +320,24 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True):
         plt.axhline(y=.75, color='grey', ls='--', lw=1)
         plt.yticks([0.0, 0.25, 0.5, 0.75, 1.0])
         plt.ylim(0, 1)
+
+
+def plot_fm2011():
+
+    n_per_cave_dir = 'reproduce_fm2011_3-29/data/figure11b_test_3-28/'
+    K_dir = 'reproduce_fm2011_3-29/data/figure12b_test_3-28/'
+
+    figsize = (7, 4.5)
+
+    # Plot average over 50 trials for K=2 and n_per_cave=5.
+    hdfs_dict = _hdfs_dict(K_dir, 'K')
+    plot_figure10b(hdfs_dict[2], figsize=figsize)
+    close_hdfdict(hdfs_dict)
+
+    # Plot final polarization as a function of cavesize.
+    plot_figure11b(n_per_cave_dir, figsize=figsize)
+    # Plot final polarization as a function of K.
+    plot_figure12b(K_dir, figsize=figsize)
 
 
 def _hdfs_dict(hdfs_dir, key):
