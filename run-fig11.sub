@@ -5,10 +5,10 @@
 #$ -j y
 #$ -V
 #$ -l mem_free=96G
-#$ -pe smp 20
+#$ -pe smp 24
 
 printf "\nReproducing FM2011 Figure 11b for N_PER_CAVE=$N_PER_CAVE. Started at `uptime`\n"
 
 polexp reproduce_fig11 $N_PER_CAVE $OUTPUT_DIR --n_trials=50
 
-printf "Finished with run for eproducing FM2011 Figure 12b for N_PER_CAVE=$N_PER_CAVE. Finished at `uptime`\n"
+printf "Finished with run for reproducing FM2011 Figure 12b for N_PER_CAVE=$N_PER_CAVE. Finished at `uptime`\n"
