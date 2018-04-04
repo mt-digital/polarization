@@ -120,40 +120,40 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
 
             # Each list in the experiments dictionary is considered a
             # single trial for the particular experimental condition.
-            trials = experiments[experiment_name]
+            if experiment_name in experiments:
+                trials = experiments[experiment_name]
 
-            # Take "y" vector from each polarization history, which is
-            # polarization itself. XXX For some reason I am logging
-            # which iteration, which is identical to the index, of course.
-            # Should fix that sometime XXX.
-            polarizations = np.array(
-                [trial['polarization'] for trial in trials]
-            )
-            # Get timeseries of agent opinion coordinates for every trial.
-            # coords = np.array([trial.history['coords'] for trial in trials])
-            final_coords = np.array(
-                [trial['final coords'] for trial in trials]
-            )
-            # Get adjacency matrix of each trial's graph.
-            adjacencies = np.array(
-                [trial['graph'] for trial in trials]
-            )
+                # Take "y" vector from each polarization history, which is
+                # polarization itself. XXX For some reason I am logging
+                # which iteration, which is identical to the index, of course.
+                # Should fix that sometime XXX.
+                polarizations = np.array(
+                    [trial['polarization'] for trial in trials]
+                )
+                # Get timeseries of agent opinion coordinates for every trial.
+                final_coords = np.array(
+                    [trial['final coords'] for trial in trials]
+                )
+                # Get adjacency matrix of each trial's graph.
+                adjacencies = np.array(
+                    [trial['graph'] for trial in trials]
+                )
 
-            hf.create_dataset(
-                experiment_name + '/polarization',
-                data=polarizations,
-                compression='gzip'
-            )
-            hf.create_dataset(
-                experiment_name + '/final coords',
-                data=final_coords,
-                compression='gzip'
-            )
-            hf.create_dataset(
-                experiment_name + '/graph',
-                data=adjacencies,
-                compression='gzip'
-            )
+                hf.create_dataset(
+                    experiment_name + '/polarization',
+                    data=polarizations,
+                    compression='gzip'
+                )
+                hf.create_dataset(
+                    experiment_name + '/final coords',
+                    data=final_coords,
+                    compression='gzip'
+                )
+                hf.create_dataset(
+                    experiment_name + '/graph',
+                    data=adjacencies,
+                    compression='gzip'
+                )
 
 
 def plot_figure10b(hdf, low_pct=25, high_pct=75, **kwargs):
@@ -175,17 +175,18 @@ def plot_figure10b(hdf, low_pct=25, high_pct=75, **kwargs):
 
     for idx, key in enumerate(keys):
 
-        polarizations = hdf[key + '/polarization']
+        if key in hdf:
+            polarizations = hdf[key + '/polarization']
 
-        plow = np.percentile(polarizations, low_pct, axis=0)
-        phigh = np.percentile(polarizations, high_pct, axis=0)
-        pmean = np.mean(polarizations, axis=0)
+            plow = np.percentile(polarizations, low_pct, axis=0)
+            phigh = np.percentile(polarizations, high_pct, axis=0)
+            pmean = np.mean(polarizations, axis=0)
 
-        max_polarization = max(np.max(phigh), max_polarization)
+            max_polarization = max(np.max(phigh), max_polarization)
 
-        plt.plot(plow, color=colors[idx], ls='--')
-        plt.plot(phigh, color=colors[idx], ls='--')
-        plt.plot(pmean, color=colors[idx], label=key)
+            plt.plot(plow, color=colors[idx], ls='--')
+            plt.plot(phigh, color=colors[idx], ls='--')
+            plt.plot(pmean, color=colors[idx], label=key)
 
     plt.ylim(0.0, 1.0)
 
