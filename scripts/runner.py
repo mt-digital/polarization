@@ -14,7 +14,8 @@ from reproduce_fm2011 import persist_experiments
 
 
 
-def _run_exp(_, experiment='connected caveman', n_caves=20, n_per_cave=5,
+def _run_exp(_, experiment='connected caveman', noise_level=0.0,
+             n_caves=20, n_per_cave=5,
              S=1.0, K=2, n_iterations=200, verbose=False):
 
     # Add the same number random short-range or long-range ties.
@@ -22,7 +23,7 @@ def _run_exp(_, experiment='connected caveman', n_caves=20, n_per_cave=5,
 
     if experiment == 'connected caveman':
         cc = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K)
-        cc.iterate(n_iterations, verbose=verbose)
+        cc.iterate(n_iterations, verbose=verbose, noise_level=noise_level)
         ret = cc
 
     elif experiment == 'random short-range':
@@ -30,7 +31,8 @@ def _run_exp(_, experiment='connected caveman', n_caves=20, n_per_cave=5,
         ccsrt = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K)
         ccsrt.iterate(2000, verbose=False)
         ccsrt.add_shortrange_random_edges(n_edges)
-        ccsrt.iterate(n_iterations - 2000, verbose=False)
+        ccsrt.iterate(n_iterations - 2000,
+                      verbose=False, noise_level=noise_level)
         ret = ccsrt
 
     elif experiment == 'random any-range':
@@ -38,7 +40,8 @@ def _run_exp(_, experiment='connected caveman', n_caves=20, n_per_cave=5,
         ccrt = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K)
         ccrt.iterate(2000, verbose=False)
         ccrt.add_random_edges(n_edges)
-        ccrt.iterate(n_iterations - 2000, verbose=False)
+        ccrt.iterate(n_iterations - 2000,
+                     verbose=False, noise_level=noise_level)
         ret = ccrt
 
     else:
@@ -152,11 +155,14 @@ def _get_default_pool():
 @cli.command()
 @click.argument('s', type=float)
 @click.argument('k', type=int)
+@click.argument('noise_level', type=float)
 @click.argument('output_dir', type=str)
+@click.option('--distance_measure', default='fm2011')
 @click.option('--n_trials', default=5)
 @click.option('--n_iterations', default=10000)
 @click.pass_context
-def ic_experiment(ctx, s, k, output_dir, n_trials, n_iterations):
+def complexity_experiment(ctx, s, k, noise_level, output_dir, distance_measure,
+                          n_trials, n_iterations):
     '''
     Run n_trials for a given maximum initial opinion feature S and cultural complexity K.
     '''
@@ -164,7 +170,8 @@ def ic_experiment(ctx, s, k, output_dir, n_trials, n_iterations):
     pool = _get_default_pool()
 
     func = partial(_run_exp, n_iterations=n_iterations,
-                   experiment='random any-range', K=k, S=s)
+                   noise_level=noise_level, experiment='random any-range',
+                   K=k, S=s)
 
     experiments = {
         'random any-range': pool.imap(func, range(n_trials))
