@@ -180,6 +180,7 @@ def complexity_experiment(ctx, s, k, noise_level, output_dir, distance_measure,
     output_path = os.path.join(output_dir, str(uuid4()) + '.hdf5')
 
     persist_experiments(
-        experiments, hdf_filename=output_path, metadata={'K': k, 'S': s}
+        experiments, hdf_filename=output_path,
+        metadata={'K': k, 'S': s, 'noise_level': noise_level}
     )
 
