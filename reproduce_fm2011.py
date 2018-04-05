@@ -303,7 +303,7 @@ def plot_S_K_experiment(data_dir, **kwargs):
     plt.xticks(range(n_hdfs_K)[:-3], x[3:])
 
 
-def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
+def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None, **kwargs):
     '''
     This figure plots average final polarization against K, the number of
     opinion features.
@@ -315,7 +315,8 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
 
     colors = ['r', 'b', 'g']
 
-    x = [1, 2, 3, 5, 10]
+    if x is None:
+        x = [1, 2, 3, 5, 10]
     xlen = len(x)
 
     hdf_dict = _hdfs_dict(data_dir, 'K')
@@ -345,11 +346,15 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
 
         yerr = np.vstack([yerr_low, yerr_high])
 
-        if stddev:
+        if stddev is True:
             plt.errorbar(range(len(x)), y_vals, yerr=y_std,
                          marker='o', ms=8,
                          color=colors[key_idx], label=key, capsize=5,
                          alpha=0.65)
+        elif stddev == 'off':
+            plt.plot(range(len(x)), y_vals, marker='o', ms=8,
+                     color=colors[key_idx], label=key,
+                     alpha=0.65)
         else:
             plt.errorbar(range(len(x)), y_vals, yerr=yerr, marker='o', ms=8,
                          color=colors[key_idx], label=key, capsize=5,
