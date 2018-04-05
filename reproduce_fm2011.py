@@ -25,6 +25,8 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
+import seaborn as sns
 
 from datetime import datetime
 from glob import glob
@@ -195,6 +197,63 @@ def plot_figure10b(hdf, low_pct=25, high_pct=75, **kwargs):
     plt.xlabel('Iteration')
     plt.ylabel('Polarization')
     ax.grid(axis='y', zorder=0)
+
+
+def _final_mean(hdf, experiment='random any-range'):
+
+    # Extract the final polarization measurement from all n_trials trials.
+    all_final_polarizations = hdf[experiment + '/polarization'][:, -1]
+
+    return all_final_polarizations.mean()
+
+
+def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
+
+    hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
+
+    for K in Ks:
+
+        if 'figsize' in kwargs:
+            plt.figure(figsize=kwargs['figsize'])
+        else:
+            plt.figure()
+
+        # Limit hdfs of interest to those of the K of current interest.
+        final_means = [
+            _final_mean(hdf) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+
+        # Use noise_level and S as index to force uniqueness.
+        index = [
+            (hdf.attrs['noise_level'], hdf.attrs['S']) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+        index = pd.MultiIndex.from_tuples(index)
+        index.set_names(['noise level', 'S'], inplace=True)
+
+        df = pd.DataFrame(
+            index=index, data=final_means, columns=['Average polarization']
+        ).reset_index(
+        ).pivot('noise level', 'S', 'Average polarization')
+
+        ax = sns.heatmap(df, cmap='YlGnBu_r')
+
+        # Make noise level run from small to large.
+        ax.invert_yaxis()
+
+        ax.set_title(r'$K={}$'.format(K))
+
+        # Force the heatmap to be square.
+        x0, x1 = ax.get_xlim()
+        y0, y1 = ax.get_ylim()
+        ax.set_aspect((x1 - x0)/(y1 - y0))
+
+        plt.savefig('reports/Figures/p_v_noise_k={}.pdf'.format(K))
+        plt.close()
+
+    for hdf in hdfs:
+        hdf.close()
 
 
 def plot_figure11b(data_dir, stddev=True, full_ylim=True, **kwargs):
