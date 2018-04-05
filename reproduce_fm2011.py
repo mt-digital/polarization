@@ -260,6 +260,49 @@ def plot_figure11b(data_dir, stddev=True, full_ylim=True, **kwargs):
         plt.ylim(0, 1)
 
 
+def plot_S_K_experiment(data_dir, **kwargs):
+
+    if 'figsize' in kwargs:
+        plt.figure(figsize=kwargs['figsize'])
+    else:
+        plt.figure()
+
+    hdf_lookup = 'random any-range/polarization'
+
+    hdfs = [h5py.File(f) for f in glob(data_dir + '*.hdf5')]
+    Ks = list(set(hdf.attrs['K'] for hdf in hdfs))
+    Ks.sort()
+
+    for K in Ks:
+
+        hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K]
+        hdfs_K.sort(key=lambda x: x.attrs['S'])
+
+        n_hdfs_K = len(hdfs_K)
+        y_vals = np.zeros(n_hdfs_K)
+        y_std = np.zeros(n_hdfs_K)
+
+        for idx in range(n_hdfs_K):
+            # Get final polarization value for all trials and average.
+            final_polarizations = hdfs_K[idx][hdf_lookup][:, -1]
+            y_vals[idx] = final_polarizations.mean()
+            y_std[idx] = final_polarizations.std()
+
+        x = [str(hdf.attrs['S']) for hdf in hdfs_K]
+        # plt.errorbar(x[3:], y_vals[3:], yerr=y_std[3:],
+        #              fmt='o-', label=r'$K={}$'.format(K), capsize=5,
+        #              alpha=0.65)
+
+        # These [3:] are ugly, but just working for the data.
+        plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
+                 lw=2, ms=8, alpha=0.65)
+
+    plt.legend(loc='upper left')
+    plt.ylabel('Average polarization')
+    plt.xlabel('S')
+    plt.xticks(range(n_hdfs_K)[:-3], x[3:])
+
+
 def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
     '''
     This figure plots average final polarization against K, the number of
@@ -284,6 +327,7 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
         y_std = np.zeros(xlen)
         yerr_low = np.zeros(xlen)
         yerr_high = np.zeros(xlen)
+
         for x_idx, K in enumerate(x):
 
             hdf = hdf_dict[K]
@@ -300,6 +344,7 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, **kwargs):
             y_std[x_idx] = np.std(final_polarizations)
 
         yerr = np.vstack([yerr_low, yerr_high])
+
         if stddev:
             plt.errorbar(range(len(x)), y_vals, yerr=y_std,
                          marker='o', ms=8,
