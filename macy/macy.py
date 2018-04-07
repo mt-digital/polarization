@@ -9,7 +9,8 @@ import random
 import secrets
 
 from datetime import datetime
-from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cosine as cosine_distance
+# from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial.distance import cdist
 
 
@@ -23,7 +24,7 @@ class Agent:
 
 class Network(nx.Graph):
 
-    def __init__(self, initial_graph=None, close_connections=False):
+    def __init__(self, distance_metric='fm2011', initial_graph=None):
         '''
         Create a network of any initial configuration. Provides methods
         for iterating (updating opinions and weights) and for randomizing
@@ -32,16 +33,17 @@ class Network(nx.Graph):
 
         '''
         self.graph = initial_graph
+        self.distance_metric = distance_metric
 
         # all pairs of vertices
         nodes = list(self.graph.nodes())
         n_nodes = len(nodes)
-        self.possible_edges = [
-            (nodes[i], nodes[j])
-            for i in range(n_nodes)
-            for j in range(i, n_nodes)
-            if i != j
-        ]
+        # self.possible_edges = [
+        #     (nodes[i], nodes[j])
+        #     for i in range(n_nodes)
+        #     for j in range(i, n_nodes)
+        #     if i != j
+        # ]
 
         self.n_nodes = n_nodes
 
@@ -80,7 +82,7 @@ class Network(nx.Graph):
         # Update neighbors and weights.
         for agent in self.graph.nodes():
             neighbors = self.graph.neighbors(agent)
-            update_weights(agent, neighbors)
+            update_weights(agent, neighbors, self.distance_metric)
 
     def add_random_edges(self, n_edges):
         '''
@@ -112,7 +114,7 @@ class Network(nx.Graph):
         # Update neighbors and weights.
         for agent in self.graph.nodes():
             neighbors = self.graph.neighbors(agent)
-            update_weights(agent, neighbors)
+            update_weights(agent, neighbors, self.distance_metric)
 
     def rewire_edges(self, rewire_prob, percolation_limit=False):
         '''
@@ -191,7 +193,7 @@ class Network(nx.Graph):
                 agent.opinions = opinion_update_vec(agent, neighbors,
                                                     noise_level=noise_level)
             else:
-                update_weights(agent, neighbors)
+                update_weights(agent, neighbors, self.distance_metric)
 
     def draw(self):
         nx.draw_circular(self.graph)
@@ -206,7 +208,8 @@ class Experiment:
     we are just investigating randomized connected caveman graphs; no need
     to add unnecessary complexity.
     '''
-    def __init__(self, n_caves, n_per_cave, outcome_metric='fm2011'):
+    def __init__(self, n_caves, n_per_cave,
+                 distance_metric='fm2011', outcome_metric='fm2011'):
         # Initialize graph labelled by integers and randomize.
         # network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
         # Initialize an agent at each node.
@@ -237,13 +240,12 @@ class Experiment:
             {n: Agent() for n in graph.nodes()}
         )
 
-        self.network = Network(relabelled_graph)
+        self.network = Network(distance_metric, relabelled_graph)
 
+        # XXX seems like something Network should handle.
         for agent in self.network.graph.nodes():
             neighbors = self.network.graph.neighbors(agent)
-            update_weights(agent, neighbors)
-
-        # Assign cave indices by walking
+            update_weights(agent, neighbors, self.network.distance_metric)
 
         # History will store each timestep's polarization measure.
         self.history = {'polarization': [], 'coords': []}
@@ -380,25 +382,29 @@ def calculate_weight(a1, a2, nonnegative=False, distance_metric='fm2011'):
 
         return 1 - (numerator / (nonneg_fac * K))
 
-    elif distance_metric == 'cosine_similarity':
-        return cosine_similarity(o1, o2)
+    elif distance_metric == 'cosine_distance':
+        # Weight is 1 - distance. Cosine distance ranges from 0 to 2.
+        return 1.0 - cosine_distance(o1, o2)
+
+    else:
+        raise RuntimeError('Distance metric not recognized')
 
 
-def update_weights(agent, neighbors):
+def update_weights(agent, neighbors, distance_metric='fm2011'):
     '''
     Update agent weights in-place. TODO make this an Agent method.
     '''
     agent.weights = {
-        neighbor: calculate_weight(agent, neighbor)
+        neighbor: calculate_weight(agent, neighbor,
+                                   distance_metric=distance_metric)
         for neighbor in neighbors
     }
-    # print('updated {} with {}'.format(agent, agent.weights))
 
 
-def raw_opinion_update_vec(agent, neighbors, distance_metric='fm2011'):
-
-    # import ipdb
-    # ipdb.set_trace()
+def raw_opinion_update_vec(agent, neighbors):
+    '''
+    Equation ?? in Flache and Macy (2011).
+    '''
     neighbors = list(neighbors)
     factor = (1.0 / (2.0 * len(neighbors)))
 
