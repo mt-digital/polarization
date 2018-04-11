@@ -6,9 +6,10 @@ from macy import Experiment
 class BoxedCavesExperiment(Experiment):
 
     def __init__(self, n_caves, n_per_cave, box_length, K=2,
-                 outcome_metric='fm2011'):
+                 distance_metric='fm2011', outcome_metric='fm2011'):
 
         Experiment.__init__(self, n_caves, n_per_cave,
+                            distance_metric=distance_metric,
                             outcome_metric=outcome_metric)
 
         _assign_boxed_constrained_opinions(

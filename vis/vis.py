@@ -76,7 +76,6 @@ def phase_diagram(df, noise_level_lim=0.4, n_iter=1000,
         fig.savefig(output_path, dpi=300)
 
 
-
 def polarization_by_iteration(df, box_width, noise_level,
                               seaborn_context='paper', font_scale=1.5,
                               save_dir='/Users/mt/workspace/papers/269final/figures'):

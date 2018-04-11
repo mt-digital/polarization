@@ -77,6 +77,79 @@
     higher dimensions.
 \end{enumerate}
 
+\section{Summary of Flache and Macy (2011) model}
+
+\subsection{Expanded Figure 12b with additional $K$}
+\begin{figure}
+  \centering
+      \includegraphics[width=0.75\textwidth]{Figures/finegrained_p_vs_K.pdf}
+  \caption{
+    Compare to FM 2011 Figure 12b. Identical, but with more intermediate
+    values of cultural complexity $K$. As found by Flache and Macy, 
+    average final polarization decreases with $K$. Each
+    data point is the average of fifty trials. Each trial ran over 
+    10k timesteps.
+  }
+  \label{fig:}
+\end{figure}
+
+
+\section{Effect of initial conditions on final polariztion}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.75\textwidth]{Figures/P_vs_S_for_K.pdf}
+  \caption{
+    Average final polarization becomes non-zero then increases as
+    the width of the uniform distribution of initial opinions increases.
+    The width must be larger and larger as the cultural complexity $K$ 
+    increases for the system to achieve non-zero final polarization. This
+    condition is identical to the bottom row of each heatmap in 
+    Figure \ref{fig:heatmaps}. Each
+    data point is the average of fifty trials. Each trial ran over 
+    10k timesteps. 
+  }
+  \label{fig:p_vs_s_for_k}
+\end{figure}
+
+\section{Effect of opinion update noise on final polarization}
+
+\begin{figure}[t!]
+  \centering
+      \begin{subfigure}[t]{0.49\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{Figures/p_v_noise_k=2.pdf}
+          \caption{}
+      \end{subfigure}
+      ~
+      \begin{subfigure}[t]{0.49\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{Figures/p_v_noise_k=3.pdf}
+          \caption{}
+      \end{subfigure} \\
+      \begin{subfigure}[t]{0.49\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{Figures/p_v_noise_k=4.pdf}
+          \caption{}
+      \end{subfigure}
+      ~
+      \begin{subfigure}[t]{0.49\textwidth}
+          \centering
+          \includegraphics[width=\textwidth]{Figures/p_v_noise_k=5.pdf}
+          \caption{}
+      \end{subfigure} \\
+  \caption{Final average polarization varies with both the width of the
+    uniform distribution of initial opinion magnitudes and the noise level in
+    the opinion updates. Noisy opinion updates can perturb the system away from
+    situations where homogeneity of opinion would otherwise obtain. $K=2,3,4,5$
+    are shown. The value in each square of the heatmap is the average of
+    fifty trials. Each trial ran over 10k timesteps.
+  }
+  \label{fig:heatmaps}
+\end{figure}
+
+
+
 \section{Reproduction of results from Flache and Macy 2011}
 \label{sec:label}
 
