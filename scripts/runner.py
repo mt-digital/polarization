@@ -275,4 +275,3 @@ def k3_2d_ops(ctx, output_dir, n_trials, n_iterations, distance_metric):
                 'distribution in 3D opinion space.'
             }
         )
->>>>>>> d51db016111513964fa6ed88a4994867b92cf0b1
