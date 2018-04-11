@@ -183,4 +183,3 @@ def complexity_experiment(ctx, s, k, noise_level, output_dir, distance_measure,
         experiments, hdf_filename=output_path,
         metadata={'K': k, 'S': s, 'noise_level': noise_level}
     )
-
