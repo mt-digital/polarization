@@ -5,10 +5,16 @@
 
 \documentclass[11pt,letterpaper]{article}
 
+\usepackage{lineno}
+\linenumbers
 % \usepackage{cogsci}
 \usepackage{fullpage}
 \usepackage{booktabs}
+\usepackage{setspace}
+\doublespacing
 \usepackage{pslatex}
+\usepackage{hyperref}
+\usepackage{url}
 \usepackage{apacite}
 \usepackage{amsmath}
 \usepackage{subcaption}
@@ -17,11 +23,10 @@
 \pgfplotsset{compat=newest}
 \usepgfplotslibrary{groupplots}
 \usepackage{wrapfig}
-% \usepackage{url}
-% \usepackage{hyperref}
 \usepackage{bigfoot}
 \usepackage[export]{adjustbox}
 \setlength\intextsep{0pt}
+\usepackage{authblk}
 
 
 
@@ -30,9 +35,14 @@
 \usepackage{gb4e}  % linguistic examples
 \noautomath
 
-\title{Reproduction of Flache and Macy 2011 experiment two with negative valence}
+\title{Polarization is sensitive to initial opinion extremity and communication noise}
 
-\author{{\bf Matthew A.~Turner (mturner8@ucmerced.edu)}}
+\author[1]{Matthew~A.~Turner}
+\author[1]{Paul~E.~Smaldino}
+
+\affil[1]{\footnotesize Cognitive Science Program, University of California, Merced}
+
+\date{}
 
 \begin{document}
 \maketitle
@@ -48,38 +58,36 @@
   Here we add three further considerations we believe are important in 
   modeling when polarization obtains. First, we show that final polarization
   is sensitive to the initial extremity of agent opinions. Second, we quantify
-  how robust polarizing dynamics are to noise. Finally, we try to more deeply
-  understand the effect of increasing the dimensionality of agent opinion
-  vectors. \citeA{Flache2011} find that increasing $K$ results in the
-  disappearance of polarizing dynamics. To address this, we argue that 
-  Flache and Macy's distance metric may have unintended consequences that are
-  exacerbated as $K$ increases and makes polarization unlikely given 
-  uniformly distributed initial conditions for each element of the agent
-  opinion vectors. We re-run Flache and Macy's experiments with
-  alternative opinion distance measures, and discuss the pros and cons of their
-  approach and the alternative measures we propose. Finally, we suggest that
-  determining clusters and distance between clusters may be a more informative
-  measure of the population's final state than polarization measure of 
-  variance of distances as used by Flache and Macy.
+  how robust polarizing dynamics are to noise. 
 \end{abstract}
 
-\section{Outline}
+\section{Introduction}
 
-\begin{enumerate}
-  \item Experiment with changes in $S$ for $K=2, 3, 5$
-  \item Argue for cosine distance and re-run all experiments with cosine distance for $d_{ij}$
-  \item Add noise and re-run all experiments
-  \item At this point, we have done many experiments, but we don't have a good
-    feel for the dynamics that lead to the outcome measure. Also the outcome
-    measure does not tell us much about the structure of agents. We could imagine
-    situations where agents have clustered into more than two camps. 
-    Let's explore the final configurations of a selection of experiments for
-    higher dimensions.
-\end{enumerate}
+\subsection{Summary of Flache and Macy (2011) model}
 
-\section{Summary of Flache and Macy (2011) model}
+\section{Methods}
+\label{sec:methods}
 
-\subsection{Expanded Figure 12b with additional $K$}
+the \citeA{Flache2011}
+
+\section{Results}
+
+We begin by demonstrating how polarization emerges in the model under the
+base parameterization of \cite{Flache2011}. Parallel 
+coordinate plots for various $K$ below. At $t=0$, each agent's opinion 
+features are filled with a real number between drawn from a uniform 
+distribution over $[-1, 1]$. Then, 20 
+ties between two randomly selected nodes are added to the network at 
+iteration 2000. The system is iterated 8000 more times for 10000 total 
+iterations. \citeA{Flache2011} show graphs of the state of systems for $K=2$.
+As \citeA{Flache2011} showed, and we
+reproduce in Figure~\ref{fig:k_finegrained}, polarization vanishes as
+as the cultural complexity increases.
+However, it is a well-studied fact that our everyday intuitions about 
+our low-dimensional world do not always hold up in higher dimensions 
+\cite{Aggarwal2001}. So, this process is illustrated for $K \geq 3$ in 
+Figure~\ref{fig:parallel-coords}.   
+
 \begin{figure}
   \centering
       \includegraphics[width=0.75\textwidth]{Figures/finegrained_p_vs_K.pdf}
@@ -90,11 +98,26 @@
     data point is the average of fifty trials. Each trial ran over 
     10k timesteps.
   }
-  \label{fig:}
+  \label{fig:k_finegrained}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.75\textwidth]{parallel_coords_k=4.png}
+  \caption{Tracking the evolution of opinions in model societies with varying
+    cultural complexities. Each line represents a single agent. Each color
+    corresponds to a different cave. 
+    Each x-axis tick is one of the $K$ dimensions.
+    The intersection of an agent line with each of the x-axis grid lines indicates
+    the position in the $k_i$ direction. In $K=3$ dimensions, for example, 
+    there would be three opinion directions, $k_1, k_2, k_3$.
+    Examining the state of the system using parallel 
+    coordinates allows us to see the location of the opinions in any number
+    of dimensions.}
+  \label{fig:parallel-coords}
+\end{figure}
 
-\section{Effect of initial conditions on final polariztion}
+\subsection{Initial extremism and polarization}
 
 \begin{figure}
   \centering
@@ -112,7 +135,7 @@
   \label{fig:p_vs_s_for_k}
 \end{figure}
 
-\section{Effect of opinion update noise on final polarization}
+\subsection{Communication noise and polarization}
 
 \begin{figure}[t!]
   \centering
@@ -148,50 +171,6 @@
   \label{fig:heatmaps}
 \end{figure}
 
-
-
-\section{Reproduction of results from Flache and Macy 2011}
-\label{sec:label}
-
-We are trying to recreate the first three figures from Experiment 2 of 
-\citeA{Flache2011}, for the cases where negative valence was allowed.
-See Section 3.2 starting on p. 166 in \citeA{Flache2011} for details of the
-network structure, the two methods of network randomization used, and 
-the structure of the experiments. See Section 2.1, starting on p. 151, for 
-the introduction of the dynamical equations and outcome measures. Section 2.1
-also contains asynchronous update rules (p. 155-156). Importantly, agent opinions
-and weights are not updated on the same time step; only one or the other is
-updated. Which one is updated is chosen at random. That and more fun details
-are in the paper.
-
-\begin{figure}
-\begin{center}
-  \includegraphics[width=\textwidth]{Figures/figure10b.pdf}
-\end{center}
-  \caption{Average of 50 trials with 25$^{\mathrm{th}}$ and 75$^{\mathrm{th}}$ 
-    percentile values shown at each timestep (dashed line). Compare with
-    Figure 10 of Flache and Macy (2011), p. 168.}
-\label{fig:figure10-reproduction}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-  \includegraphics[width=\textwidth]{Figures/figure11b.pdf}
-\end{center}
-  \caption{The average of the polarization over 50 trials for varying cave size.
-    Compare with Figure 11 of Flache and Macy (2011), p. 170.}
-\label{fig:figure11-reproduction}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-  \includegraphics[width=\textwidth]{Figures/figure12b.pdf}
-\end{center}
-  \caption{Average polarization over 50 trials for different 
-    ``cultural complexities,'' $K$. Compare to Figure 12 of Flache and Macy
-    (2011), p. 171.}
-\label{fig:figure12-reproduction}
-\end{figure}
 
 
 

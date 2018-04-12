@@ -12,3 +12,13 @@ clean:
 
 wc:
 	wc -w intro.tex methods-data-intro.tex results.tex discussion.tex methods.tex
+
+beamer:
+	pdflatex -shell-escape slides-4-12.tex
+
+bmain: beamer
+	bibtex slides-4-12 && pdflatex -shell-escape slides-4-12.tex
+
+ob: bmain
+	open slides-4-12.pdf
+
