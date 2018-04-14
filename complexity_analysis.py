@@ -116,8 +116,21 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
         hdf.close()
 
 
-def plot_S_K_experiment(data_dir, **kwargs):
+def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean, **kwargs):
+    '''
+    Plot average, median, or other aggregate of final polarizaiton over
+    trials for various values of initial opinion magnitude S and cultural
+    complexity K. Pass optional kwargs of figsize or other matplotlib
+    plot options.
 
+    Arguments:
+        data_dirs (str or list): Location of HDF files to be used
+        agg_fun (function): Method for aggregating final polarizations
+        plot_start (int): Index to start plotting at. Used for excluding
+        uninteresting parts of the plot.
+    Returns:
+        None
+    '''
     if 'figsize' in kwargs:
         plt.figure(figsize=kwargs['figsize'])
         del kwargs['figsize']
@@ -126,7 +139,14 @@ def plot_S_K_experiment(data_dir, **kwargs):
 
     hdf_lookup = 'random any-range/polarization'
 
-    hdfs = [h5py.File(f) for f in glob(os.path.join(data_dir, '*.hdf5'))]
+    if type(data_dirs) is str:
+        data_dirs = [data_dirs]
+
+    # Build list of HDF files from data directories.
+    hdfs = []
+    for d in data_dirs:
+        hdfs += [h5py.File(f) for f in glob(os.path.join(d, '*.hdf5'))]
+
     Ks = list(set(hdf.attrs['K'] for hdf in hdfs))
     Ks.sort()
 
@@ -148,19 +168,33 @@ def plot_S_K_experiment(data_dir, **kwargs):
         for idx in range(n_hdfs_K):
             # Get final polarization value for all trials and average.
             final_polarizations = hdfs_K[idx][hdf_lookup][:, -1]
-            y_vals[idx] = final_polarizations.mean()
+            y_vals[idx] = agg_fun(final_polarizations)
             y_std[idx] = final_polarizations.std()
 
         x = [str(hdf.attrs['S']) for hdf in hdfs_K]
-        # plt.errorbar(x[3:], y_vals[3:], yerr=y_std[3:],
-        #              fmt='o-', label=r'$K={}$'.format(K), capsize=5,
-        #              alpha=0.65)
 
         # These [3:] are ugly, but just working for the data.
-        plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
+        # plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
+        #          lw=2, ms=8, alpha=0.65)
+        plt.plot(x[plot_start:], y_vals[plot_start:], 'o-', label=r'$K={}$'.format(K),
                  lw=2, ms=8, alpha=0.65)
 
     plt.legend(loc='upper left')
-    plt.ylabel('Average polarization')
+    if agg_fun == np.mean:
+        plt.ylabel('Average polarization')
+    elif agg_fun == np.median:
+        plt.ylabel('Median polarization')
     plt.xlabel('S')
-    plt.xticks(range(n_hdfs_K)[:-3], x[3:])
+
+    if plot_start > 0:
+        plt.xticks(range(n_hdfs_K)[:-plot_start], x[plot_start:])
+
+
+def _nonzero_final_polarization_selector(hdf,
+                                         experiment='random any-range',
+                                         tol=1e-6):
+    final_polarizations = _all_final_polarizations(hdf, experiment=experiment)
+    return final_polarizations > tol
+
+
+
