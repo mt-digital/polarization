@@ -15,13 +15,14 @@ from reproduce_fm2011 import persist_experiments
 
 def _run_exp(_, experiment='connected caveman', noise_level=0.0,
              n_caves=20, n_per_cave=5, S=1.0, K=2, n_iterations=4000,
-             distance_metric='fm2011', verbose=False):
+             n_iter_sync=1000, distance_metric='fm2011', verbose=False):
 
     # Add the same number random short-range or long-range ties.
     n_edges = 20
 
     if experiment == 'connected caveman':
         cc = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K,
+                                  n_iter_sync=n_iter_sync,
                                   distance_metric=distance_metric)
         cc.iterate(n_iterations, verbose=verbose, noise_level=noise_level)
         ret = cc
@@ -29,6 +30,7 @@ def _run_exp(_, experiment='connected caveman', noise_level=0.0,
     elif experiment == 'random short-range':
         # Connected caveman with short-range ties added randomly.
         ccsrt = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K,
+                                     n_iter_sync=n_iter_sync,
                                      distance_metric=distance_metric)
         ccsrt.iterate(2000, verbose=False)
         ccsrt.add_shortrange_random_edges(n_edges)
@@ -39,6 +41,7 @@ def _run_exp(_, experiment='connected caveman', noise_level=0.0,
     elif experiment == 'random any-range':
         # Connected caveman with any-range ties added randomly.
         ccrt = BoxedCavesExperiment(n_caves, n_per_cave, S, K=K,
+                                    n_iter_sync=n_iter_sync,
                                     distance_metric=distance_metric)
         ccrt.iterate(2000, verbose=False)
         ccrt.add_random_edges(n_edges)
@@ -54,6 +57,7 @@ def _run_exp(_, experiment='connected caveman', noise_level=0.0,
     return {
         'polarization': ret.history['polarization'],
         'final coords': ret.history['final coords'],
+        'coords': [list(c) for c in ret.history['coords']],
         'graph': nx.to_numpy_matrix(ret.network.graph)
     }
 
@@ -68,6 +72,7 @@ def cli(ctx):
 @click.argument('output_dir')
 @click.option('--n_trials', default=5)
 @click.option('--n_iterations', default=10000)
+@click.option('--n_iter_sync', default=200)
 @click.option('--distance_metric', default='fm2011')
 @click.pass_context
 def reproduce_fig12(ctx, k, output_dir, n_trials, n_iterations, distance_metric):
@@ -163,9 +168,10 @@ def _get_default_pool():
 @click.option('--distance_metric', default='fm2011')
 @click.option('--n_trials', default=5)
 @click.option('--n_iterations', default=4000)
+@click.option('--n_iter_sync', default=200)
 @click.pass_context
 def complexity_experiment(ctx, s, k, noise_level, output_dir, distance_metric,
-                          n_trials, n_iterations):
+                          n_trials, n_iterations, n_iter_sync):
     '''
     Run n_trials for a given maximum initial opinion feature S and cultural complexity K.
     '''
@@ -174,18 +180,23 @@ def complexity_experiment(ctx, s, k, noise_level, output_dir, distance_metric,
 
     func = partial(_run_exp, n_iterations=n_iterations,
                    noise_level=noise_level, experiment='random any-range',
-                   K=k, S=s, distance_metric=distance_metric)
+                   K=k, S=s, distance_metric=distance_metric,
+                   n_iter_sync=n_iter_sync)
 
     experiments = {
-        'random any-range': pool.imap(func, range(n_trials))
+        # 'random any-range': pool.imap(func, range(n_trials))
+        'random any-range': pool.map(func, range(n_trials))
     }
 
     output_path = os.path.join(output_dir, str(uuid4()) + '.hdf5')
 
     persist_experiments(
         experiments, hdf_filename=output_path,
-        metadata={'K': k, 'S': s, 'noise_level': noise_level,
-                  'distance_metric': distance_metric}
+        metadata={
+            'K': k, 'S': s, 'noise_level': noise_level,
+            'distance_metric': distance_metric,
+            'n_iter_sync': n_iter_sync
+        }
     )
 
 

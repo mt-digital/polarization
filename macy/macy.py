@@ -208,7 +208,7 @@ class Experiment:
     we are just investigating randomized connected caveman graphs; no need
     to add unnecessary complexity.
     '''
-    def __init__(self, n_caves, n_per_cave,
+    def __init__(self, n_caves, n_per_cave, n_iter_sync=1000,
                  distance_metric='fm2011', outcome_metric='fm2011'):
         # Initialize graph labelled by integers and randomize.
         # network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
@@ -248,7 +248,12 @@ class Experiment:
             update_weights(agent, neighbors, self.network.distance_metric)
 
         # History will store each timestep's polarization measure.
-        self.history = {'polarization': [], 'coords': []}
+        self.history = {
+            'polarization': [],
+            'coords': []
+        }
+
+        self.n_iter_sync = n_iter_sync
         self.iterations = 0
         self.n_caves = n_caves
         self.outcome_metric = outcome_metric
@@ -277,13 +282,17 @@ class Experiment:
             self.history['polarization'].append(
                  polarization(self.network.graph, metric=self.outcome_metric)
             )
-            # self.history['coords'].append(
-            #     [n.opinions for n in self.network.graph.nodes()]
-            # )
             self.network.iterate(noise_level=noise_level)
             self.iterations += 1
 
-        self.history['final coords'] = [n.opinions for n in self.network.graph.nodes()]
+            if self.iterations % self.n_iter_sync == 0:
+                self.history['coords'].append(
+                    [n.opinions for n in self.network.graph.nodes()]
+                )
+                print(self.history['coords'][0])
+
+        self.history['final coords'] = \
+            [n.opinions for n in self.network.graph.nodes()]
 
     def make_opinion_movie(self, movie_name=None, fps=15, dpi=150):
         '''

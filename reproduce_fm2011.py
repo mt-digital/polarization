@@ -79,15 +79,6 @@ def figure_10(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
     return experiments
 
 
-def figure_11(n_trials=3, n_iter=4000, cave_sizes=[3, 5, 10, 20, 30, 40, 50],
-              verbose=True, hdf5_filename=None):
-    plt.gca().xaxis.grid(True)
-    pass
-
-def figure_12(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
-    pass
-
-
 def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                         metadata=None):
     '''
@@ -136,6 +127,9 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                 final_coords = np.array(
                     [trial['final coords'] for trial in trials]
                 )
+                coords = np.array(
+                    [trial['coords'] for trial in trials]
+                )
                 # Get adjacency matrix of each trial's graph.
                 adjacencies = np.array(
                     [trial['graph'] for trial in trials]
@@ -149,6 +143,11 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                 hf.create_dataset(
                     experiment_name + '/final coords',
                     data=final_coords,
+                    compression='gzip'
+                )
+                hf.create_dataset(
+                    experiment_name + '/coords',
+                    data=coords,
                     compression='gzip'
                 )
                 hf.create_dataset(
