@@ -103,7 +103,7 @@ def reproduce_fig12(ctx, k, output_dir, n_trials, n_iterations, distance_metric)
     persist_experiments(
         experiments,
         hdf_filename=output_path,
-        metadata={'K': k}
+        metadata={'K': k, 'distance metric': distance_metric}
     )
 
 
