@@ -72,6 +72,7 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
 
         if 'figsize' in kwargs:
             plt.figure(figsize=kwargs['figsize'])
+            del kwargs['figsize']
         else:
             plt.figure()
 
@@ -119,6 +120,7 @@ def plot_S_K_experiment(data_dir, **kwargs):
 
     if 'figsize' in kwargs:
         plt.figure(figsize=kwargs['figsize'])
+        del kwargs['figsize']
     else:
         plt.figure()
 
@@ -138,9 +140,6 @@ def plot_S_K_experiment(data_dir, **kwargs):
             hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K]
 
         hdfs_K.sort(key=lambda x: x.attrs['S'])
-        if K == 6:
-            import ipdb
-            ipdb.set_trace()
 
         n_hdfs_K = len(hdfs_K)
         y_vals = np.zeros(n_hdfs_K)

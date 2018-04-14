@@ -88,6 +88,47 @@ our low-dimensional world do not always hold up in higher dimensions
 \cite{Aggarwal2001}. So, this process is illustrated for $K \geq 3$ in 
 Figure~\ref{fig:parallel-coords}.   
 
+
+\subsection{Initial extremism and polarization}
+
+But it was not clear what was going on with this, so I made a copule more
+plots. The most puzzling are the peaks at $S=0.8$ for $K=3$, $S=.95$ for 
+$K=5$, and $S=.9$ for
+$K=6$. First, I zoomed in on $S \in \{0.85, 0.86, \ldots, 0.95\}$ for $K=6$
+(Figure~\ref{fig:zoomK6}. Then I made histograms of the non-zero 
+final polarization values for each to better understand their 
+distribution (Figure~\ref{fig:K6-histograms}). The non-zero values for .9 and
+above are given in Table~\ref{tab:nonzerosK6}.
+
+
+\begin{table}
+  \centering
+  \begin{tabular}{ll}
+    S & Non-zero polarizations \\
+    \toprule 
+    0.90 & 0.71, 0.06, 0.06, 0.06 \\
+    0.91 & 0.07, 0.06, 0.07 \\
+    0.92 & 0.07, 0.14, 0.07 \\
+    0.93 & 0.49, 0.07, 0.13, 0.07, 0.06 \\
+    0.94 & 0.77, 0.95, 0.60, 0.14, 0.26, 0.07, 0.07, 0.06 \\
+    0.95 & 0.95, 0.77, 0.90, 0.26, 0.83, 0.33, 0.37, 0.95 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Final polarization values for various $S$ values when final 
+  polarization was greater thatn ``zero'' (1e-6). These were the only 
+  non-zero final polarizations out of 100 trials for each $S$. 
+  Each $S$ from .86 to .89 had a single trial resulting in
+  non-zero final polarization of about .07.}
+  \label{tab:nonzerosK6}
+\end{table}
+
+\subsection{Communication noise and polarization}
+
+
+\clearpage
+
+\section{Figures}
+
 \begin{figure}
   \centering
       \includegraphics[width=0.75\textwidth]{Figures/finegrained_p_vs_K.pdf}
@@ -117,9 +158,7 @@ Figure~\ref{fig:parallel-coords}.
   \label{fig:parallel-coords}
 \end{figure}
 
-\subsection{Initial extremism and polarization}
-
-\begin{figure}
+\begin{figure}[t!]
   \centering
   \includegraphics[width=0.75\textwidth]{Figures/P_vs_S_for_K.pdf}
   \caption{
@@ -135,7 +174,34 @@ Figure~\ref{fig:parallel-coords}.
   \label{fig:p_vs_s_for_k}
 \end{figure}
 
-\subsection{Communication noise and polarization}
+
+\begin{figure}[t!]
+  \centering
+    \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k6detail.pdf}
+  \caption{Zoom-in on polarization versus $S$ for $K=6$. 
+  Average taken over 100 trials.}
+  \label{fig:zoomK6}
+\end{figure}
+
+\begin{figure}[t!]
+  \centering
+    \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k56detail.pdf}
+  \caption{Zoom-in on polarization versus $S$ for $K=5,6$. Different 
+    experiment run from Figure \ref{fig:zoomK6}. It appears the bump at
+    0.9 in that figure was due to noise, as it is missing here.
+    Average taken over 100 trials.
+  }
+  \label{fig:zoomK56}
+\end{figure}
+
+\begin{figure}[t!]
+  \centering
+    \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k6_histograms.pdf}
+  \caption{Distribution of non-zero final polarization values for $K=6$.
+    Corresponds to the experiment run shown in Figure \ref{fig:zoomK6}.
+  }
+  \label{fig:K6-histograms}
+\end{figure}
 
 \begin{figure}[t!]
   \centering
@@ -171,8 +237,7 @@ Figure~\ref{fig:parallel-coords}.
   \label{fig:heatmaps}
 \end{figure}
 
-
-
+\clearpage
 
 \bibliographystyle{apacite}
 
