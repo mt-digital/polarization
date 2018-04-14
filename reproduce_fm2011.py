@@ -79,15 +79,6 @@ def figure_10(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
     return experiments
 
 
-def figure_11(n_trials=3, n_iter=4000, cave_sizes=[3, 5, 10, 20, 30, 40, 50],
-              verbose=True, hdf5_filename=None):
-    plt.gca().xaxis.grid(True)
-    pass
-
-def figure_12(n_trials=3, n_iter=4000, verbose=True, hdf5_filename=None):
-    pass
-
-
 def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                         metadata=None):
     '''
@@ -136,6 +127,9 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                 final_coords = np.array(
                     [trial['final coords'] for trial in trials]
                 )
+                coords = np.array(
+                    [trial['coords'] for trial in trials]
+                )
                 # Get adjacency matrix of each trial's graph.
                 adjacencies = np.array(
                     [trial['graph'] for trial in trials]
@@ -149,6 +143,11 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
                 hf.create_dataset(
                     experiment_name + '/final coords',
                     data=final_coords,
+                    compression='gzip'
+                )
+                hf.create_dataset(
+                    experiment_name + '/coords',
+                    data=coords,
                     compression='gzip'
                 )
                 hf.create_dataset(
@@ -211,6 +210,9 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
 
     hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
 
+    hdf0 = hdfs[0]
+    distance_metric = hdf0.attrs['distance_metric']
+
     for K in Ks:
 
         if 'figsize' in kwargs:
@@ -249,7 +251,9 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
         y0, y1 = ax.get_ylim()
         ax.set_aspect((x1 - x0)/(y1 - y0))
 
-        plt.savefig('reports/Figures/p_v_noise_k={}.pdf'.format(K))
+        plt.savefig(
+            'reports/Figures/p_v_noise_k={}_{}.pdf'.format(K, distance_metric)
+        )
         plt.close()
 
     for hdf in hdfs:
@@ -328,13 +332,16 @@ def plot_S_K_experiment(data_dir, **kwargs):
 
     hdf_lookup = 'random any-range/polarization'
 
-    hdfs = [h5py.File(f) for f in glob(data_dir + '*.hdf5')]
+    hdfs = [h5py.File(f) for f in glob(os.path.join(data_dir, '*.hdf5'))]
     Ks = list(set(hdf.attrs['K'] for hdf in hdfs))
     Ks.sort()
+    # import ipdb
+    # ipdb.set_trace()
 
     for K in Ks:
 
-        hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K]
+        # hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K]
+        hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K and hdf.attrs['noise_level'] == 0.0]
         hdfs_K.sort(key=lambda x: x.attrs['S'])
 
         n_hdfs_K = len(hdfs_K)
