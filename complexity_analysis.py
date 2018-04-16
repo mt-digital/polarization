@@ -116,7 +116,8 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
         hdf.close()
 
 
-def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean, **kwargs):
+def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean,
+                        save_path=None, lim_xticks=False, **kwargs):
     '''
     Plot average, median, or other aggregate of final polarizaiton over
     trials for various values of initial opinion magnitude S and cultural
@@ -150,6 +151,7 @@ def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean, **kwargs):
     Ks = list(set(hdf.attrs['K'] for hdf in hdfs))
     Ks.sort()
 
+    n_hdfs_max = 0.0
     for K in Ks:
 
         if 'noise_level' in hdfs[0].attrs:
@@ -172,12 +174,15 @@ def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean, **kwargs):
             y_std[idx] = final_polarizations.std()
 
         x = [str(hdf.attrs['S']) for hdf in hdfs_K]
+        if n_hdfs_max < n_hdfs_K:
+            xmax = x
+            n_hdfs_max = n_hdfs_K
 
         # These [3:] are ugly, but just working for the data.
         # plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
         #          lw=2, ms=8, alpha=0.65)
-        plt.plot(x[plot_start:], y_vals[plot_start:], 'o-', label=r'$K={}$'.format(K),
-                 lw=2, ms=8, alpha=0.65)
+        plt.plot(x[plot_start:], y_vals[plot_start:], 'o-',
+                 label=r'$K={}$'.format(K), lw=2, ms=8, alpha=0.65)
 
     plt.legend(loc='upper left')
     if agg_fun == np.mean:
@@ -188,6 +193,71 @@ def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean, **kwargs):
 
     if plot_start > 0:
         plt.xticks(range(n_hdfs_K)[:-plot_start], x[plot_start:])
+    if lim_xticks:
+        plt.xticks(range(n_hdfs_max)[::2], xmax[::2])
+
+    if save_path:
+        plt.savefig(save_path)
+
+
+MPL_COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+
+def plot_single_S_K(data_dir, K, save_path=None, semilogy=False, **kwargs):
+
+    if 'figsize' in kwargs:
+        plt.figure(figsize=kwargs['figsize'])
+        del kwargs['figsize']
+    else:
+        plt.figure()
+
+    hdfs = _hdf_list(data_dir)
+    hdfs_K = [hdf for hdf in hdfs if hdf.attrs['K'] == K]
+    hdfs_K.sort(key=lambda x: x.attrs['S'])
+    hdf0 = hdfs_K[0]
+
+    n_trials = len(_all_final_polarizations(hdf0))
+    S_vals = [hdf.attrs['S'] for hdf in hdfs_K]
+
+    if semilogy:
+        plot_fun = plt.semilogy
+    else:
+        plot_fun = plt.plot
+
+    # Get color to match the plot of averages for all K.
+    # Subtract 2 because first K plot is K=2. See
+    # https://stackoverflow.com/questions/42086276/get-default-line-colour-cycle
+    if K > 1:
+        color = MPL_COLORS[K - 2]
+    elif K == 1:
+        color = 'black'
+
+    # Plot all final pol values for every S value. One HDF for each S.
+    for idx, hdf in enumerate(hdfs_K):
+        # Plot with a legend on the first S value.
+        if idx == 0:
+            plot_fun([S_vals[idx]]*n_trials, _all_final_polarizations(hdf),
+                     's', color=color, ms=8, alpha=0.25,
+                     label='Trial result', **kwargs)
+        else:
+            plot_fun([S_vals[idx]]*n_trials, _all_final_polarizations(hdf),
+                     's', color=color, ms=8, alpha=0.25, **kwargs)
+
+    means = [_final_mean(hdf) for hdf in hdfs_K]
+
+    if 'lw' not in kwargs:
+        kwargs['lw'] = 2
+
+    plot_fun(S_vals, means, color=color, marker=None,
+             label='Average', **kwargs)
+
+    plt.ylabel('Polarization')
+    plt.xlabel('S')
+    plt.legend()
+    plt.title(r'$K={}$'.format(K))
+
+    if save_path:
+        plt.savefig(save_path)
 
 
 def _nonzero_final_polarization_selector(hdf,

@@ -142,21 +142,21 @@ above are given in Table~\ref{tab:nonzerosK6}.
   \label{fig:k_finegrained}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.75\textwidth]{parallel_coords_k=4.png}
-  \caption{Tracking the evolution of opinions in model societies with varying
-    cultural complexities. Each line represents a single agent. Each color
-    corresponds to a different cave. 
-    Each x-axis tick is one of the $K$ dimensions.
-    The intersection of an agent line with each of the x-axis grid lines indicates
-    the position in the $k_i$ direction. In $K=3$ dimensions, for example, 
-    there would be three opinion directions, $k_1, k_2, k_3$.
-    Examining the state of the system using parallel 
-    coordinates allows us to see the location of the opinions in any number
-    of dimensions.}
-  \label{fig:parallel-coords}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.75\textwidth]{parallel_coords_k=4.png}
+%   \caption{Tracking the evolution of opinions in model societies with varying
+%     cultural complexities. Each line represents a single agent. Each color
+%     corresponds to a different cave. 
+%     Each x-axis tick is one of the $K$ dimensions.
+%     The intersection of an agent line with each of the x-axis grid lines indicates
+%     the position in the $k_i$ direction. In $K=3$ dimensions, for example, 
+%     there would be three opinion directions, $k_1, k_2, k_3$.
+%     Examining the state of the system using parallel 
+%     coordinates allows us to see the location of the opinions in any number
+%     of dimensions.}
+%   \label{fig:parallel-coords}
+% \end{figure}
 
 \begin{figure}[t!]
   \centering
@@ -177,21 +177,62 @@ above are given in Table~\ref{tab:nonzerosK6}.
 
 \begin{figure}[t!]
   \centering
-    \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k6detail.pdf}
-  \caption{Zoom-in on polarization versus $S$ for $K=6$. 
+    \includegraphics[width=0.75\textwidth]{Figures/s_k_zoom_2-6_mean.pdf}
+  \caption{Zoom-in on \emph{average} polarization versus $S$ for $K=6$. 
+  Different experiment run from Figure~\ref{fig:p_vs_s_for_k}. 
+  Same data as in Figure~\ref{fig:zoom_median}.
   Average taken over 100 trials.}
-  \label{fig:zoomK6}
+  \label{fig:zoom_average}
 \end{figure}
 
 \begin{figure}[t!]
   \centering
-    \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k56detail.pdf}
-  \caption{Zoom-in on polarization versus $S$ for $K=5,6$. Different 
-    experiment run from Figure \ref{fig:zoomK6}. It appears the bump at
-    0.9 in that figure was due to noise, as it is missing here.
-    Average taken over 100 trials.
+    \includegraphics[width=0.75\textwidth]{Figures/s_k_zoom_2-6_median.pdf}
+  \caption{Zoom-in on \emph{median} polarization versus $S$ for $K=2,3,4,5,6$. 
+    Median polarization for $K=5$ and $K=6$ are both flat at zero; $K=5$ 
+    data is obscured by $K=6$.
+    Different experiment run from Figure~\ref{fig:p_vs_s_for_k}.
+    Same data as in Figure~\ref{fig:zoom_average}.
+    Median taken over 100 trials.
   }
-  \label{fig:zoomK56}
+  \label{fig:zoom_median}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Figures/single_S_K=2.pdf}
+  \end{subfigure} \\
+  \begin{subfigure}[t]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{Figures/single_S_K=3.pdf}
+      % \caption{}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[t]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{Figures/single_S_K=4.pdf}
+      % \caption{}
+  \end{subfigure} \\
+  \begin{subfigure}[t]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{Figures/single_S_K=5.pdf}
+      % \caption{}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[t]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{Figures/single_S_K=6.pdf}
+      % \caption{}
+  \end{subfigure}
+  \caption{The average polarization is actually very noisy because 
+    final polarizations find a large range of values. Even for $K=6$, there
+    are a significant number of trials that end in a non-zero polarization
+    state. We need to figure out what causes this. Network configuration?
+    Initial conditions? We need to do two tests: hold one or the other 
+    constant and vary the other.
+  }
 \end{figure}
 
 \begin{figure}[t!]
