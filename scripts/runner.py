@@ -297,7 +297,6 @@ def _rerun_exp(_, initial_opinions=None,
     if experiment != 'connected caveman':
         raise RuntimeError('{} not yet implemented.'.format(experiment))
 
-
     cc = ExperimentRerun(initial_opinions, experiment=experiment,
                          n_iter_sync=n_iter_sync)
 
@@ -344,7 +343,8 @@ def rerun_experiment(ctx, data_dir, spec_str, output_filename,
 
     initial_opinions = data['coords'][trial_index, 0]
 
-    func = partial(_rerun_exp, initial_opinions=initial_opinions)
+    func = partial(_rerun_exp, n_iterations=n_iterations,
+                   initial_opinions=initial_opinions)
 
     pool = _get_default_pool()
 

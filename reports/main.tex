@@ -68,25 +68,7 @@
 \section{Methods}
 \label{sec:methods}
 
-the \citeA{Flache2011}
-
 \section{Results}
-
-We begin by demonstrating how polarization emerges in the model under the
-base parameterization of \cite{Flache2011}. Parallel 
-coordinate plots for various $K$ below. At $t=0$, each agent's opinion 
-features are filled with a real number between drawn from a uniform 
-distribution over $[-1, 1]$. Then, 20 
-ties between two randomly selected nodes are added to the network at 
-iteration 2000. The system is iterated 8000 more times for 10000 total 
-iterations. \citeA{Flache2011} show graphs of the state of systems for $K=2$.
-As \citeA{Flache2011} showed, and we
-reproduce in Figure~\ref{fig:k_finegrained}, polarization vanishes as
-as the cultural complexity increases.
-However, it is a well-studied fact that our everyday intuitions about 
-our low-dimensional world do not always hold up in higher dimensions 
-\cite{Aggarwal2001}. So, this process is illustrated for $K \geq 3$ in 
-Figure~\ref{fig:parallel-coords}.   
 
 \subsection{Initial opinion extremism and polarization}
 
@@ -294,7 +276,7 @@ though a minority, of trials that end \emph{below} that mean. This seems to
 suggest that update path has a large impact on the final polarization of a
 given trial. However, initial conditions can bias the final polarization. 
 
-Why is this? I have a hypothesis. Consider the space of all update paths. 
+Why is this? Consider the space of all update paths. 
 There are ($N_{iter} \times N_{agents} \times N_{weights}$?) of these.
 I hypothesize this is because larger initial polarizations means a larger
 fraction of these paths are polarizing. This may well be related to the 
@@ -317,12 +299,13 @@ polarization become inevitable.
 
 \begin{figure}[h!]
   \centering
-    \includegraphics[width=.75\textwidth]{Figures/caveman-highpol-histogram.pdf}
-  \caption{Distribution of final polarizations starting from initial conditions
+    \includegraphics[width=.75\textwidth]{Figures/caveman-highpol-histogram-10k-its.pdf}
+  \caption{Distribution of final polarizations at iteration 10000
+  starting from initial conditions
   of the connected caveman trial with the largest final polarization with $K=2$.
   The distribution is skewed towards final polarizations considerably larger
   than the mean polarization of 0.41 for the connected caveman experiment
-  with $K=2$.
+  with $K=2$. 
   }
   \label{fig:highpol-histogram}
 \end{figure}
