@@ -289,7 +289,6 @@ class Experiment:
                 self.history['coords'].append(
                     [n.opinions for n in self.network.graph.nodes()]
                 )
-                print(self.history['coords'][0])
 
         self.history['final coords'] = \
             [n.opinions for n in self.network.graph.nodes()]

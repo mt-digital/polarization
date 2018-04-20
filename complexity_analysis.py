@@ -8,6 +8,8 @@ import warnings
 
 from glob import glob
 
+from macy import Experiment
+
 
 def _all_final_polarizations(hdf, experiment='random any-range'):
     return hdf[experiment + '/polarization'][:, -1]
@@ -298,7 +300,7 @@ def plot_single_K_experiment(data_dir, experiment, x=[1, 2, 3, 5, 10],
     else:
         plt.figure()
 
-    hdfs = _hdf_list('data/finegrained_K_fm')
+    hdfs = _hdf_list(data_dir)
 
     color = {
         'connected caveman': 'r',
@@ -337,8 +339,12 @@ def plot_single_K_experiment(data_dir, experiment, x=[1, 2, 3, 5, 10],
     plt.ylabel('Polarization')
     plt.title('Average and trial polarization for {}'.format(experiment))
 
+    if save_path:
+        plt.savefig(save_path)
 
-def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None, **kwargs):
+
+def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
+                   save_path=None, **kwargs):
     '''
     This figure plots average final polarization against K, the number of
     opinion features.
@@ -405,4 +411,47 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None, **kwargs):
         plt.axhline(y=.5, color='grey', ls='--', lw=1)
         plt.axhline(y=.75, color='grey', ls='--', lw=1)
         plt.yticks([0.0, 0.25, 0.5, 0.75, 1.0])
-        plt.ylim(0, 1)
+        # plt.ylim(0, 1)
+
+    if save_path:
+        plt.savefig(save_path)
+
+
+class ExperimentRerun(Experiment):
+
+    def __init__(self, initial_opinions, metadata=None,
+                 experiment='connected caveman', n_iter_sync=1000):
+        '''
+        Initialize a fresh experiment using the information in the HDF.
+
+        Arguments:
+            hdf (h5py.File): TODO
+            trial_idx (int): Index of the trial to re-run.
+        '''
+        # meta = hdf.attrs
+        # self.K = meta['K']
+
+        # TODO add support for re-running IC and noise experiments.
+        # if 'S' in meta:
+        #     pass
+        # if 'noise_level' in meta:
+        #     pass
+
+        # For now only doing these re-runs with n_per_cave=5 and n_caves=20.
+        n_per_cave = 5
+        n_caves = 20
+
+        # data = hdf[experiment]
+
+        # initial_opinions = data['coords'][trial_idx, 0]
+
+        Experiment.__init__(self, n_caves, n_per_cave, n_iter_sync=n_iter_sync,
+                            distance_metric='fm2011')
+
+        self.n_iter_sync = n_iter_sync
+        for idx, agent in enumerate(self.network.graph.nodes()):
+            agent.opinions = initial_opinions[idx]
+
+        self.history['coords'].append(
+            [n.opinions for n in self.network.graph.nodes()]
+        )

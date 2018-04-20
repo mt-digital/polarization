@@ -104,7 +104,6 @@ def persist_experiments(experiments, hdf_filename=None, append_datetime=False,
     with h5py.File(hdf_filename, 'w') as hf:
 
         if metadata is not None:
-            assert type(metadata) is dict, 'metadata must be a dictionary'
             # Iterate over key/values and add metadata to root HDF attributes.
             for key in metadata:
                 hf.attrs[key] = metadata[key]

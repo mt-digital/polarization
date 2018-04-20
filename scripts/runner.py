@@ -3,14 +3,14 @@ import multiprocessing as mp
 import networkx as nx
 import numpy as np
 import os
-import pickle
 
-from joblib import Parallel, delayed
 from functools import partial
+from urllib.parse import parse_qs
 from uuid import uuid4
 
 from experiments.within_box import BoxedCavesExperiment
 from reproduce_fm2011 import persist_experiments
+from complexity_analysis import _lookup_hdf, ExperimentRerun
 
 
 def _run_exp(_, experiment='connected caveman', noise_level=0.0,
@@ -156,8 +156,11 @@ def reproduce_fig11(ctx, n_per_cave, output_dir, n_trials, n_iterations):
     )
 
 
-def _get_default_pool():
-    return mp.Pool(max(2, mp.cpu_count() - 4))
+def _get_default_pool(max_=True):
+    if max_:
+        return mp.Pool(mp.cpu_count())
+    else:
+        return mp.Pool(max(2, mp.cpu_count() - 4))
 
 
 @cli.command()
@@ -286,3 +289,74 @@ def k3_2d_ops(ctx, output_dir, n_trials, n_iterations, distance_metric):
                 'distribution in 3D opinion space.'
             }
         )
+
+
+def _rerun_exp(_, initial_opinions=None,
+               n_iterations=4000, n_iter_sync=1000,
+               experiment='connected caveman', verbose=False):
+    if experiment != 'connected caveman':
+        raise RuntimeError('{} not yet implemented.'.format(experiment))
+
+
+    cc = ExperimentRerun(initial_opinions, experiment=experiment,
+                         n_iter_sync=n_iter_sync)
+
+    cc.iterate(n_iterations, verbose=verbose)
+
+    ret = cc
+
+    return {
+        'polarization': ret.history['polarization'],
+        'final coords': ret.history['final coords'],
+        'coords': [list(c) for c in ret.history['coords']],
+        'graph': nx.to_numpy_matrix(ret.network.graph)
+    }
+
+
+@cli.command()
+@click.argument('data_dir')
+@click.argument('spec_str')
+@click.argument('output_filename')
+@click.option('--n_trials', default=5)
+@click.option('--n_iterations', default=4000)
+@click.option('--distance_metric', default='fm2011')
+@click.option('--experiment', default='connected caveman')
+@click.option('--trial_index', default=None)
+@click.pass_context
+def rerun_experiment(ctx, data_dir, spec_str, output_filename,
+                     n_trials, n_iterations,
+                     distance_metric, experiment, trial_index):
+    '''
+    Re-run an experiment using an hdf from DATA_DIR specified by SPEC_STR in URL query format. Selects run with max polarization by default.
+    '''
+
+    spec = {k: v[0] for k, v in parse_qs(spec_str).items()}
+
+    if 'K' in spec:
+        spec['K'] = int(spec['K'])
+
+    hdf = _lookup_hdf(data_dir, **spec)
+    data = hdf[experiment]
+
+    # Get the trial of the largest final polarization if no trial_index given.
+    if trial_index is None:
+        trial_index = np.argmax(data['polarization'][:, -1])
+
+    initial_opinions = data['coords'][trial_index, 0]
+
+    func = partial(_rerun_exp, initial_opinions=initial_opinions)
+
+    pool = _get_default_pool()
+
+    experiments = {
+        experiment: pool.map(func, range(n_trials))
+    }
+    # experiments = []
+    # for _ in range(n_trials):
+    #     experiments.append(func(_))
+    # experiments = {
+    #     experiment: experiments
+    # }
+
+    persist_experiments(experiments, hdf_filename=output_filename,
+                        metadata=hdf.attrs)
