@@ -18,9 +18,9 @@ def _all_final_polarizations(hdf, experiment='random any-range'):
 def _final_mean(hdf, experiment='random any-range'):
 
     # Extract the final polarization measurement from all n_trials trials.
-    all_final_polarizations = _all_final_polarizations(hdf, experiment)
-
-    return all_final_polarizations.mean()
+    pre_ret = _all_final_polarizations(hdf, experiment)
+    # Get rid of nan and return the mean of remaining values.
+    return pre_ret[~np.isnan(pre_ret)].mean()
 
 
 def _hdf_list(data_dir):
@@ -515,6 +515,7 @@ def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
 
     plt.ylabel('Polarization')
     plt.xlabel(xlabel)
+    plt.xticks(x_vals)
     plt.title(title)
     plt.legend()
 
