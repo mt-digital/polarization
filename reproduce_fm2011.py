@@ -205,12 +205,14 @@ def _final_mean(hdf, experiment='random any-range'):
     return all_final_polarizations.mean()
 
 
-def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
+def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None, **kwargs):
 
     hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
 
-    hdf0 = hdfs[0]
-    distance_metric = hdf0.attrs['distance_metric']
+    # hdf0 = hdfs[0]
+
+    # if 'distance_metric' in hdf0.attrs:
+    #     distance_metric = hdf0.attrs['distance_metric']
 
     for K in Ks:
 
@@ -250,10 +252,9 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
         y0, y1 = ax.get_ylim()
         ax.set_aspect((x1 - x0)/(y1 - y0))
 
-        plt.savefig(
-            'reports/Figures/p_v_noise_k={}_{}.pdf'.format(K, distance_metric)
-        )
-        plt.close()
+        if save_path is not None:
+            plt.savefig(save_path + '_K={}.pdf'.format(K))
+            plt.close()
 
     for hdf in hdfs:
         hdf.close()

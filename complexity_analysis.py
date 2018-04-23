@@ -55,6 +55,61 @@ def _lookup_hdf(data_dir, **criteria):
             hdf.close()
 
 
+def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None, **kwargs):
+
+    hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
+
+    # hdf0 = hdfs[0]
+
+    # if 'distance_metric' in hdf0.attrs:
+    #     distance_metric = hdf0.attrs['distance_metric']
+
+    for K in Ks:
+
+        if 'figsize' in kwargs:
+            plt.figure(figsize=kwargs['figsize'])
+        else:
+            plt.figure()
+
+        # Limit hdfs of interest to those of the K of current interest.
+        final_means = [
+            _final_mean(hdf) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+
+        # Use noise_level and S as index to force uniqueness.
+        index = [
+            (hdf.attrs['noise_level'], hdf.attrs['S']) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+        index = pd.MultiIndex.from_tuples(index)
+        index.set_names(['noise level', 'S'], inplace=True)
+
+        df = pd.DataFrame(
+            index=index, data=final_means, columns=['Average polarization']
+        ).reset_index(
+        ).pivot('noise level', 'S', 'Average polarization')
+
+        ax = sns.heatmap(df, cmap='YlGnBu_r')
+
+        # Make noise level run from small to large.
+        ax.invert_yaxis()
+
+        ax.set_title(r'$K={}$'.format(K))
+
+        # Force the heatmap to be square.
+        x0, x1 = ax.get_xlim()
+        y0, y1 = ax.get_ylim()
+        ax.set_aspect((x1 - x0)/(y1 - y0))
+
+        if save_path is not None:
+            plt.savefig(save_path + '_K={}.pdf'.format(K))
+            plt.close()
+
+    for hdf in hdfs:
+        hdf.close()
+
+
 def _hdfs_dict(hdfs_dir, key):
     '''
     HDFs from different runs are being saved with a UUID-based filename instead
@@ -90,61 +145,6 @@ def final_polarization_histogram(data_dir, **criteria):
         _lookup_hdf(data_dir, **criteria)
     )
     plt.hist(polarizations)
-
-
-def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], **kwargs):
-
-    hdfs = _hdf_list(data_dir)
-
-    hdf0 = hdfs[0]
-    distance_metric = hdf0.attrs['distance_metric']
-
-    for K in Ks:
-
-        if 'figsize' in kwargs:
-            plt.figure(figsize=kwargs['figsize'])
-            del kwargs['figsize']
-        else:
-            plt.figure()
-
-        # Limit hdfs of interest to those of the K of current interest.
-        final_means = [
-            _final_mean(hdf) for hdf in hdfs
-            if hdf.attrs['K'] == K
-        ]
-
-        # Use noise_level and S as index to force uniqueness.
-        index = [
-            (hdf.attrs['noise_level'], hdf.attrs['S']) for hdf in hdfs
-            if hdf.attrs['K'] == K
-        ]
-        index = pd.MultiIndex.from_tuples(index)
-        index.set_names(['noise level', 'S'], inplace=True)
-
-        df = pd.DataFrame(
-            index=index, data=final_means, columns=['Average polarization']
-        ).reset_index(
-        ).pivot('noise level', 'S', 'Average polarization')
-
-        ax = sns.heatmap(df, cmap='YlGnBu_r')
-
-        # Make noise level run from small to large.
-        ax.invert_yaxis()
-
-        ax.set_title(r'$K={}$'.format(K))
-
-        # Force the heatmap to be square.
-        x0, x1 = ax.get_xlim()
-        y0, y1 = ax.get_ylim()
-        ax.set_aspect((x1 - x0)/(y1 - y0))
-
-        plt.savefig(
-            'reports/Figures/p_v_noise_k={}_{}.pdf'.format(K, distance_metric)
-        )
-        plt.close()
-
-    for hdf in hdfs:
-        hdf.close()
 
 
 def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean,
@@ -455,3 +455,71 @@ class ExperimentRerun(Experiment):
         self.history['coords'].append(
             [n.opinions for n in self.network.graph.nodes()]
         )
+
+
+def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
+
+    all_hdfs = _hdf_list(data_dir)
+    hdfs_K = [hdf for hdf in all_hdfs if hdf.attrs['K'] == K]
+
+    if 'S' in kwargs:
+        S = kwargs['S']
+        del kwargs['S']
+        hdfs = [hdf for hdf in hdfs_K if hdf.attrs['S'] == S]
+        title = r'$K={}$ and $S={}$'.format(K, S)
+        xlabel = 'Noise level'
+        x_key = 'noise_level'
+
+    elif 'noise_level' in kwargs:
+
+        noise_level = kwargs['noise_level']
+        del kwargs['noise_level']
+
+        hdfs = [hdf for hdf in hdfs_K
+                if hdf.attrs['noise_level'] == noise_level]
+
+        title = r'$K={}$ and noise level $={}$'.format(K, noise_level)
+        xlabel = 'Maximum initial opinion magnitude'
+        x_key = 'S'
+
+    else:
+        for hdf in all_hdfs:
+            hdf.close()
+        raise RuntimeError('Either S or noise_level kwarg must be given')
+
+    hdfs.sort(key=lambda x: x.attrs[x_key])
+
+    x_vals = [hdf.attrs[x_key] for hdf in hdfs]
+    n_trials = len(_all_final_polarizations(hdfs[0]))
+
+    # Still going to code data points by color according to K value.
+    if K > 1:
+        color = MPL_COLORS[K - 2]
+
+    for idx, hdf in enumerate(hdfs):
+        if idx == 0:
+            plt.plot([x_vals[idx]]*n_trials, _all_final_polarizations(hdf),
+                     marker='s', color=color, ms=8, alpha=0.25, lw=0,
+                     label='Trial result', **kwargs)
+        else:
+            plt.plot([x_vals[idx]]*n_trials, _all_final_polarizations(hdf),
+                     marker='s', color=color, ms=8, alpha=0.25, lw=0, **kwargs)
+
+    means = [_final_mean(hdf) for hdf in hdfs]
+
+    if 'lw' not in kwargs:
+        kwargs['lw'] = 2
+
+    plt.plot(x_vals, means, color=color, marker=None,
+             label='Average', **kwargs)
+
+    plt.ylabel('Polarization')
+    plt.xlabel(xlabel)
+    plt.title(title)
+    plt.legend()
+
+    if save_path is not None:
+        plt.savefig(save_path)
+
+    for hdf in all_hdfs:
+        hdf.close()
