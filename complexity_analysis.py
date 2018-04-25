@@ -462,6 +462,12 @@ def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
     all_hdfs = _hdf_list(data_dir)
     hdfs_K = [hdf for hdf in all_hdfs if hdf.attrs['K'] == K]
 
+    if 'figsize' in kwargs:
+        plt.figure(figsize=kwargs['figsize'])
+        del kwargs['figsize']
+    else:
+        plt.figure()
+
     if 'S' in kwargs:
         S = kwargs['S']
         del kwargs['S']
