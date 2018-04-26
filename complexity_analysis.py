@@ -559,3 +559,59 @@ def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
 
     for hdf in all_hdfs:
         hdf.close()
+
+
+def plot_single_noise_example(data_dir, S=1.0, noise_level=None, trial_idx=0,
+                              K=2, time_steps=[0, 1000, 5000, 10000],
+                              y_title=.715,
+                              experiment='random any-range',
+                              save_path=None,
+                              **kwargs):
+    '''
+    Make a timeseries of 2D plots (K=2) of the evolution of agent opinions for
+    different values of maximum initial opinion magnitude and noise level.
+    '''
+    if 'figsize' in kwargs:
+        figsize = kwargs['figsize']
+        del kwargs['figsize']
+    else:
+        figsize = (8, 3)
+
+    coords_address = experiment + '/coords'
+
+    n_subplots = len(time_steps)
+    fig, axes = plt.subplots(1, n_subplots, figsize=figsize)
+
+    criteria = dict(S=S, K=K)
+    if noise_level is not None:
+        criteria.update({'noise_level': noise_level})
+
+    hdf = _lookup_hdf(data_dir, **criteria)
+    coords_series = hdf[coords_address][trial_idx]
+
+    n_iter_sync = hdf.attrs['n_iter_sync']
+    snapshot_idxs = [tstep // n_iter_sync for tstep in time_steps]
+
+    for i in range(n_subplots):
+        snap_idx = snapshot_idxs[i]
+        coords = coords_series[snap_idx]
+
+        axes[i].plot(coords[:, 0], coords[:, 1], 'o')
+        axes[i].set_xlim(-1, 1)
+        axes[i].set_ylim(-1, 1)
+        axes[i].set_aspect('equal')
+        axes[i].set_title(r'$t={}$'.format(time_steps[i]))
+
+        axes[i].grid()
+
+    final_polarization = hdf[experiment + '/polarization'][trial_idx, -1]
+
+    fig.suptitle(r'$S={}$, $\sigma={}$;  Final polarization: {:.3f}'.format(
+            S, noise_level, final_polarization
+        ), y=y_title
+    )
+
+    fig.subplots_adjust(top=1, bottom=0)
+
+    if save_path is not None:
+        plt.savefig(save_path)
