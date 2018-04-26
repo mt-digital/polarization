@@ -3,7 +3,8 @@
     \includegraphics[width=0.75\textwidth]{Figures/p_vs_K_fm.pdf}
   \caption{Reproduction of Figure 12b of Flache and Macy (2011). The average
     polarization decreases with $K$. However, as shown in subsequent figures,
-    this does not mean trials with high polarization never obtain.
+    this does not mean trials with high polarization never obtain. Average
+    taken over 100 trials.
   }
   \label{fig:p_vs_K_fm}
 \end{figure}
@@ -13,27 +14,31 @@
   \centering
     \begin{subfigure}[t]{\textwidth}
       \centering
-      \includegraphics[width=.65\textwidth]{Figures/connected-caveman-over-K.pdf}
-      \caption{Final polarizations for the non-random connected caveman graph.}
+      \includegraphics[width=.55\textwidth]{Figures/connected-caveman-over-K.pdf}
+      \caption{Non-random connected caveman network.}
       \label{fig:connected-caveman-trials}
     \end{subfigure}
     \begin{subfigure}[t]{\textwidth}
       \centering
-      \includegraphics[width=.65\textwidth]{Figures/random-shortrange-over-K.pdf}
-      \caption{Final polarizations for the non-random connected caveman graph.}
+      \includegraphics[width=.55\textwidth]{Figures/random-shortrange-over-K.pdf}
+      \caption{Random connected caveman network with short-range random ties added at iteration 2000.}
       \label{fig:random-shortrange-trials}
     \end{subfigure}
     \begin{subfigure}[t]{\textwidth}
       \centering
-      \includegraphics[width=.65\textwidth]{Figures/random-anyrange-over-K.pdf}
-      \caption{}
+      \includegraphics[width=.55\textwidth]{Figures/random-anyrange-over-K.pdf}
+      \caption{Randomized connected caveman network with long-range random ties added at iteration 2000.}
       \label{fig:random-anyrange-trials}
     \end{subfigure}
-  \caption{Even in the non-random connected caveman structure, there is 
+  \caption{Results of indivdual model runs for different network conditions. 
+    The averages of these were shown in Figure~\ref{fig:p_vs_K_fm}.
+    Even in the non-random connected caveman structure, there is 
     variation in the final polarization for different values of $K$. Highly
-    polarized final states may obtain. 100 trials are shown and comprise the
-    average. The circle shows the result for one trial of the configuration
-    reused to make Figure~\ref{fig:single-ic-histogram}.
+    polarized final states may obtain. 100 trials are shown for each 
+    network condition and comprise the
+    average. The circled square in~\ref{fig:connected-caveman-trials}
+    highlights the experimental configuration
+    reused to make Figure~\ref{fig:highpol-histogram}.
   }
   \label{fig:single-experiments-over-k}
 \end{figure}
@@ -42,9 +47,13 @@
 \begin{figure}[h!]
   \centering
     \includegraphics[width=.75\textwidth]{Figures/final-initial-pol-regplot.pdf}
-  \caption{Final and initial polarizations shown for $K=2$ with the connected 
-    caveman network. Final polarizations are same as in the $K=2$ column of 
-    Figure~\ref{fig:connected-caveman-trials}}
+  \caption{Regression of final polarization against initial polarization 
+    for $K=2$ in the non-random connected caveman network configuration.
+    Final polarizations are same as in the $K=2$ column of 
+    Figure~\ref{fig:connected-caveman-trials}. 100 trials are shown. The
+    top histogram shows the distribution of initial polarization across
+    trials. The right histogram shows the distribution of final polarization
+    across trials.}
   \label{fig:final-initial-pol-regplot}
 \end{figure}
 
@@ -52,11 +61,12 @@
   \centering
     \includegraphics[width=.75\textwidth]{Figures/caveman-highpol-histogram-10k-its.pdf}
   \caption{Distribution of final polarizations at iteration 10000
-  starting from initial conditions
-  of the connected caveman trial with the largest final polarization with $K=2$.
+  starting from initial conditions of the connected caveman trial with 
+  maximal final polarization for $K=2$ shown in 
+  Figure~\ref{fig:connected-caveman-trials}.
   The distribution is skewed towards final polarizations considerably larger
   than the mean polarization of 0.41 for the connected caveman experiment
-  with $K=2$. 
+  with $K=2$ found by Flache and Macy and shown in Figure~\ref{fig:p_vs_K_fm}. 
   }
   \label{fig:highpol-histogram}
 \end{figure}
@@ -81,24 +91,28 @@
 \begin{figure}[t!]
   \centering
     \includegraphics[width=0.75\textwidth]{Figures/s_k_zoom_2-6_mean.pdf}
-  \caption{Zoom-in on \emph{average} polarization versus $S$ for $K=6$. 
-  Different experiment run from Figure~\ref{fig:p_vs_s_for_k}. 
-  Same data as in Figure~\ref{fig:zoom_median}.
-  Average taken over 100 trials.}
-  \label{fig:zoom_average}
+  \caption{Average polarization for different cultural complexities over 
+    maximum initial opinion magnitude, $S$. 
+    Averages are roughly zero for $S<0.75$ for all cultural complexities.
+    Each data point is the average over 100 trials of the condition
+    where long-range ties were added at iteration 2000. Each trial was run to 
+    10k total iterations. 
+  }
+  \label{fig:S_average}
 \end{figure}
 
 \begin{figure}[h!]
   \centering
     \includegraphics[width=0.75\textwidth]{Figures/s_k_zoom_2-6_median.pdf}
-  \caption{Zoom-in on \emph{median} polarization versus $S$ for $K=2,3,4,5,6$. 
+  \caption{Median polarization for different cultural complexities over
+    maximum initial opinion magnitude, $S$.
     Median polarization for $K=5$ and $K=6$ are both flat at zero; $K=5$ 
-    data is obscured by $K=6$.
-    Different experiment run from Figure~\ref{fig:p_vs_s_for_k}.
-    Same data as in Figure~\ref{fig:zoom_average}.
-    Median taken over 100 trials.
+    data is obscured by $K=6$.  Median taken over 100 trials.
+    Same data as in Figure~\ref{fig:S_average}, so the condition was
+    long-range ties added at iteration 2000, with each trial run to 10k
+    total iterations.
   }
-  \label{fig:zoom_median}
+  \label{fig:S_median}
 \end{figure}
 
 
@@ -130,15 +144,29 @@
       \includegraphics[width=\textwidth]{Figures/single_S_K=6.pdf}
       % \caption{}
   \end{subfigure}
-  \caption{The average polarization is actually very noisy because 
-    final polarizations find a large range of values. Even for $K=6$, there
-    are a significant number of trials that end in a non-zero polarization
-    state. We need to figure out what causes this. Network configuration?
-    Initial conditions? We need to do two tests: hold one or the other 
-    constant and vary the other.
+  \caption{Final polarization of individual trial runs and averages from
+    Figure~\ref{fig:S_average}. Each trial was run in the condition 
+    where random long-range ties were added at iteration 2000 and each trial
+    was run to 10k iterations.
   }
   \label{fig:single_S_K}
 \end{figure}
+
+
+\begin{figure}
+  \centering
+    \includegraphics[width=.75\textwidth]{Figures/min_parallel_K=2.pdf}
+  \caption{}
+  \label{fig:}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=.75\textwidth]{Figures/max_parallel_K=2.pdf}
+  \caption{}
+  \label{fig:}
+\end{figure}
+
 
 
 \begin{figure}[t!]
@@ -146,32 +174,31 @@
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_K=2.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
       ~
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_K=3.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure} \\
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_K=4.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
       ~
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_K=5.pdf}
           % \includegraphics[width=\textwidth]{Figures/p_v_noise_k=5.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure} \\
   \caption{Final average polarization varies with both the width of the
     uniform distribution of initial opinion magnitudes and the noise level in
-    the opinion updates. Noisy opinion updates can perturb the system away from
-    situations where homogeneity of opinion would otherwise obtain. $K=2,3,4,5$
-    are shown. The value in each square of the heatmap is the average of
-    fifty trials. Each trial ran over 10k timesteps.
+    the opinion updates. The value in each square of the heatmap is the average of
+    fifty trials. Each trial was run in the condition where random long-range
+    ties were added at iteration 2000. Each trial ran to 10k timesteps. 
   }
   \label{fig:heatmaps}
 \end{figure}
@@ -182,49 +209,46 @@
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_S=0p5_K=2.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
       ~
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_level=0p10_K=2.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure} \\
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_S=0p5_K=4.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
       ~
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_level=0p10_K=4.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure} \\
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_S=0p5_K=6.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
       ~
       \begin{subfigure}[t]{0.49\textwidth}
           \centering
           \includegraphics[width=\textwidth]{Figures/noisecomm_level=0p10_K=6.pdf}
-          \caption{}
+          % \caption{}
       \end{subfigure}
-  \caption{Details of final polarizations and average for a fixed 
-    maximum initial opinion magnitude and level of noise communication for many
-    values of cultural complexity, $K$
+  \caption{Final polarization of individual trial runs and averages from
+    Figure~\ref{fig:heatmaps}. Each trial was run in the condition where
+    random long-range ties were added at iteration 2000 and each trial was
+    run to 10k iterations. In the left column, the maximum inintial opinion
+    magnitude, $S$, is constant at 0.5 and noise level vaies along the x-axis. 
+    As the noise level is increased, the
+    system is increasingly biased towards larger final polarization outcomes.
+    In the right column, the noise level is held constant at 0.1 and $S$ 
+    varies along the x-axis. For cultural complexity of $K=6$, most trials do
+    not attain large values of final polarization.
   }
   \label{fig:single-runs-commnoise}
 \end{figure}
-
-% % Figures/noisecomm_S=0.5_K=3.pdf
-% Figures/noisecomm_S=0.5_K=4.pdf
-% % Figures/noisecomm_S=0.5_K=5.pdf
-% Figures/noisecomm_S=0.5_K=6.pdf
-
-% % Figures/noisecomm_level=0.10_K=3.pdf
-% Figures/noisecomm_level=0.10_K=4.pdf
-% % Figures/noisecomm_level=0.10_K=5.pdf
-% Figures/noisecomm_level=0.10_K=6.pdf

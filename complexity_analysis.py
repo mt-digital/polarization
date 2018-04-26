@@ -55,16 +55,19 @@ def _lookup_hdf(data_dir, **criteria):
             hdf.close()
 
 
-def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None, **kwargs):
+def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
+                         pub=False, **kwargs):
 
     hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
 
-    # hdf0 = hdfs[0]
+    if pub:
+        fig, axes = plt.subplots(2, 2, figsize=(7, 9))
+        cbar_ax = fig.add_axes([1.05, 0.22, 0.05, 0.55])
+        # cbar_ax.text(3.0, .6, 'Average polarization', rotation=270)  # {'horizontalalignment': 'left'})
+        cbar_ax.set_title('Average polarization', loc='left')  # {'horizontalalignment': 'left'})
+        # cbar_ax.set_yticklabels(['{:.1f}'.format(f) for f in np.arange(0.0, 1.2, 0.2)])
 
-    # if 'distance_metric' in hdf0.attrs:
-    #     distance_metric = hdf0.attrs['distance_metric']
-
-    for K in Ks:
+    for K_idx, K in enumerate(Ks):
 
         if 'figsize' in kwargs:
             plt.figure(figsize=kwargs['figsize'])
@@ -90,7 +93,15 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None, **kwargs):
         ).reset_index(
         ).pivot('noise level', 'S', 'Average polarization')
 
-        ax = sns.heatmap(df, cmap='YlGnBu_r')
+        if pub:
+
+            ax = axes[K_idx // 2, K_idx % 2]
+            if K_idx == 3:
+                sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar_ax=cbar_ax)  # , vmax=1)
+            else:
+                sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar=False)  # , vmax=1)
+        else:
+            ax = sns.heatmap(df, cmap='YlGnBu_r')
 
         # Make noise level run from small to large.
         ax.invert_yaxis()
@@ -102,9 +113,27 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None, **kwargs):
         y0, y1 = ax.get_ylim()
         ax.set_aspect((x1 - x0)/(y1 - y0))
 
-        if save_path is not None:
+        yticklabels = ['{:.2f}'.format(f)
+                       if idx % 2 == 0
+                       else ''
+                       for idx, f in enumerate(np.arange(0.0, 0.21, 0.02))]
+
+        ax.set_yticklabels(yticklabels, {'verticalalignment': 'center'})
+
+        xticklabels = ['{:.2f}'.format(f)
+                       if idx % 2 == 0
+                       else ''
+                       for idx, f in enumerate(np.arange(0.5, 1.01, 0.05))]
+
+        ax.set_xticklabels(xticklabels, rotation=0)
+
+        if not pub and save_path is not None:
             plt.savefig(save_path + '_K={}.pdf'.format(K))
             plt.close()
+
+    if pub:
+        fig.subplots_adjust(right=1.0, hspace=-0.2)  # , wspace=0.8)
+        fig.savefig('noise_experiment_heatmaps.pdf', bbox_inches='tight')
 
     for hdf in hdfs:
         hdf.close()

@@ -96,7 +96,7 @@ agent update path, and communication noise}
         caveman graph and the default Flache and Macy initial conditions ($S=1.0$),
         final polarization and initial polarization are 
         correlated ($r=.37$). 
-      \item (Figures~\ref{fig:zoom_average},~\ref{fig:zoom_median}) 
+      \item (Figures~\ref{fig:S_average},~\ref{fig:S_median}) 
         As we artificially lowered the magnitude of 
         initial agent opinions, large final polarizations became more rare
         in the small world experiment of \citeA{Flache2011}: 
@@ -109,8 +109,17 @@ agent update path, and communication noise}
     \end{itemize}
   \item \textbf{Final polarization is sensitive to communication noise.}    
     \begin{itemize}
-      \item (Figure~\ref{fig:heatmaps})
-      \item (Figure~\ref{fig:single-runs-commnoise})
+      \item (Figure~\ref{fig:heatmaps}) A critical value of communication 
+        noise causes polarization to emerge across multiple values of $K$, even
+        when $S=0.5$, which would otherwise lead to consensus. As $S$ increases,
+        smaller values of final polarization freeze in before noise can 
+        percolate the system to higher levels of polarization.
+      \item (Figure~\ref{fig:single-runs-commnoise}) As in the other experiments,
+        the final polarization values vary around the mean value, sometimes
+        significantly. Just as initial conditions biased the system towards
+        finding a larger final polarization, increased communication noise
+        levels bias the system towards a larger final polarization, provided
+        $S$ is not too large.
     \end{itemize}
 \end{itemize}
 
@@ -129,9 +138,6 @@ is slightly polarized, for example, giving rise to the van der Waal's force
 and high surface tension. In this paper we consider the structural forces that
 arise and we call ``polarization'' with respect to agent mental states called
 opinions. 
-
-One of the first was \cite{Axelrod1997}, where each cultural feature was a 
-digit from 1-9. 
 
 In the model we consider, due to \citeA{Flache2011}, agents' opinions
 change based on a weighted difference of their opinions with their neighbors
@@ -178,123 +184,129 @@ the \citeA{Flache2011} model.
 
 \subsection{Summary of Flache and Macy (2011) model}
 
-\section{Methods}
+EQUATIONS!!!
+
+\section{Methods/Experimental setup}
 \label{sec:methods}
+
+THE EXPERIMENTS WE RAN???
 
 \section{Results}
 
-\subsection{Variation in original Flache and Macy Results}
+WRITE UP ACCORDING TO OUTLINE???
 
-We first explore variability in the original \citeA{Flache2011} results.
-We show below that there is in fact large variability in final polarization
-values that aggregate to the means presented in that paper. What causes
-this variability? 
+% \subsection{Variation in original Flache and Macy Results}
 
-One main result of
-\citeA{Flache2011} was that polarization decreases with cultural complexity.
-To demonstrate our model is working as theirs is, compare Figure 
-\ref{fig:p_vs_K_fm} to Figure 12b of \citeA{Flache2011}---these figures
-are identical.
-However, when plotting the mean as well as the results of individual trials,
-we see that the mean captures some, but not all, of the detail of what's 
-happening in terms of opinion dynamics. It is not at all rare for trials to
-have final polarizations far from the average 
-(Figure~\ref{fig:p_vs_K_single_experiments}). 
+% We first explore variability in the original \citeA{Flache2011} results.
+% We show below that there is in fact large variability in final polarization
+% values that aggregate to the means presented in that paper. What causes
+% this variability? 
 
-
-Where does
-this variation come from? It seems there are two sources: the specific
-initial opinions that agents draw from the uniform distribution and the
-update path. As (WILL BE) explained in the introduction/methods, 
-the \citeA{Flache2011} an iteration is defined as $N$ updates of either a 
-weight or an edge.  By ``update path,'' we mean which edges or weights are 
-updated in what order. 
-
-First, to see what effect the exact initial distribution has on the final 
-polarization we regressed final polarization against initial polarization for
-$K=2$ for the non-random connected caveman graph 
-(Figure~\ref{fig:final-initial-pol-regplot}, whose final polarizations are 
-plotted in the $K=2$ column of Figure~\ref{fig:connected-caveman-trials}.
-While there is a trend, there is still much noise with final polarizations
-far above and below the regression line. 
-
-To evaluate the path dependence, we ran another 100 trials using the initial
-conditions from the $K=2$, connected caveman trial
-with the maximum final polarization of 0.86. The distribution of outcomes was
-skewed towards polarizations higher than the mean for connected caveman, $K=2$,
-which was .41 (Figure~\ref{fig:highpol-histogram}). However, there are many,
-though a minority, of trials that end \emph{below} that mean. This seems to
-suggest that update path has a large impact on the final polarization of a
-given trial. However, initial conditions can bias the final polarization. 
-
-Why is this? Consider the space of all update paths. 
-There are ($N_{iter} \times N_{agents} \times N_{weights}$?) of these.
-I hypothesize this is because larger initial polarizations means a larger
-fraction of these paths are polarizing. This may well be related to the 
-concept of signed graphs: graphs where one can perfectly separate the graph
-into two graphs where all agents are friendly with each other, i.e. 
-$w_{ij} > 0$ for all agents $i,j$ \cite{Altafini2012}. There are measures of
-signedness, and I have a feeling that signedness tracks with polarization.
-That is, as the iterations progress, we could plot signedness as well as 
-polarization, and when signedness breaks different thresholds, higher levels of
-polarization become inevitable.
+% One main result of
+% \citeA{Flache2011} was that polarization decreases with cultural complexity.
+% To demonstrate our model is working as theirs is, compare Figure 
+% \ref{fig:p_vs_K_fm} to Figure 12b of \citeA{Flache2011}---these figures
+% are identical.
+% However, when plotting the mean as well as the results of individual trials,
+% we see that the mean captures some, but not all, of the detail of what's 
+% happening in terms of opinion dynamics. It is not at all rare for trials to
+% have final polarizations far from the average 
+% (Figure~\ref{fig:p_vs_K_single_experiments}). 
 
 
-\subsection{Initial opinion extremism and polarization}
+% Where does
+% this variation come from? It seems there are two sources: the specific
+% initial opinions that agents draw from the uniform distribution and the
+% update path. As (WILL BE) explained in the introduction/methods, 
+% the \citeA{Flache2011} an iteration is defined as $N$ updates of either a 
+% weight or an edge.  By ``update path,'' we mean which edges or weights are 
+% updated in what order. 
 
-\citeA{Flache2011} considered the effect of modifying two parameters under their
-``Experiment 2.'' This experiment, which is the only one we consider in this
-work, experimented with different values of cultural complexity, $K$, and 
-different cave sizes. We were curious to understand more about exactly when
-polarization emerges, especially with respect to the extremity of opinion
-for different cultural complexities. To quantify the affect of extremity of
-opinion, we introduced a new parameter $S \in [0, 1]$ that constrains the
-extremity of initial opinions. Instead of initial opinions on each
-cultural feature being drawn with uniform probability from $[-1, 1]$ they are
-instead drawn from $[-S, S]$. 
+% First, to see what effect the exact initial distribution has on the final 
+% polarization we regressed final polarization against initial polarization for
+% $K=2$ for the non-random connected caveman graph 
+% (Figure~\ref{fig:final-initial-pol-regplot}, whose final polarizations are 
+% plotted in the $K=2$ column of Figure~\ref{fig:connected-caveman-trials}.
+% While there is a trend, there is still much noise with final polarizations
+% far above and below the regression line. 
 
-We performed copmutational experiments to determine the minimum $S$ 
-in order for non-zero (greater than 1e-6) polarization to emerge. Clearly if 
-$S\leq0.5$ there can be no polarization because all distance are less than 1,
-which means all weights will be positive, all
-relationships will be friendly, and all agents will be drawn towards some 
-consensus point. Our initial experiments (Figure \ref{fig:p_vs_s_for_k})
-showed that average polarization was zero for $S < 0.75$ when $K=2$. 
-The critical $S$ seems to change for different values of $K$. For example,
-average polarization does not increase until $S=0.8$ for $K=3$. For other $K$,
-polarization seems to increase to different degrees, with some noise, starting
-between $S=0.85$ and $S=0.9$. It appears for $K=3$ that average polarization
-decreases from $S=0.95$ to $S=1.0$. There is a large bump in average 
-polarization at $S=0.9$ for $K=6$. Is this something real due to some special
-configuration for these parameters, or is it noise? (Of course it is not a bug
-in our code!)
+% To evaluate the path dependence, we ran another 100 trials using the initial
+% conditions from the $K=2$, connected caveman trial
+% with the maximum final polarization of 0.86. The distribution of outcomes was
+% skewed towards polarizations higher than the mean for connected caveman, $K=2$,
+% which was .41 (Figure~\ref{fig:highpol-histogram}). However, there are many,
+% though a minority, of trials that end \emph{below} that mean. This seems to
+% suggest that update path has a large impact on the final polarization of a
+% given trial. However, initial conditions can bias the final polarization. 
 
-To better understand the behavior we saw there, we ran a new set of simulations
-with 100 trials for each parameter setting, and ran $S$ from 0.75 to 1.0 for
-$K=2, 3, 4$ and from 0.85 to 1.0 for $K=5,6$, all with a smaller step size 
-of 0.01 (Figure~\ref{fig:zoom_average}). Since the results still appear
-noisy, we also plotted median polarization verus $S$ for the different $K$
-(Figure~\ref{fig:zoom_median}). The median is still noisy. So, to get even
-more detail, we visualized each trial result, and the average, individually
-over the $S$ values we tested with 100 trials (Figure~\ref{fig:single_S_K}).
-There is indeed a large amount of variation, which seems to increase as $S$
-increases.
+% Why is this? Consider the space of all update paths. 
+% There are ($N_{iter} \times N_{agents} \times N_{weights}$?) of these.
+% I hypothesize this is because larger initial polarizations means a larger
+% fraction of these paths are polarizing. This may well be related to the 
+% concept of signed graphs: graphs where one can perfectly separate the graph
+% into two graphs where all agents are friendly with each other, i.e. 
+% $w_{ij} > 0$ for all agents $i,j$ \cite{Altafini2012}. There are measures of
+% signedness, and I have a feeling that signedness tracks with polarization.
+% That is, as the iterations progress, we could plot signedness as well as 
+% polarization, and when signedness breaks different thresholds, higher levels of
+% polarization become inevitable.
 
 
-% \begin{figure}[t!]
-%   \centering
-%     \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k6_histograms.pdf}
-%   \caption{Distribution of non-zero final polarization values for $K=6$.
-%     Corresponds to the experiment run shown in Figure \ref{fig:zoomK6}.
-%   }
-%   \label{fig:K6-histograms}
-% \end{figure}
+% \subsection{Initial opinion extremism and polarization}
+
+% \citeA{Flache2011} considered the effect of modifying two parameters under their
+% ``Experiment 2.'' This experiment, which is the only one we consider in this
+% work, experimented with different values of cultural complexity, $K$, and 
+% different cave sizes. We were curious to understand more about exactly when
+% polarization emerges, especially with respect to the extremity of opinion
+% for different cultural complexities. To quantify the affect of extremity of
+% opinion, we introduced a new parameter $S \in [0, 1]$ that constrains the
+% extremity of initial opinions. Instead of initial opinions on each
+% cultural feature being drawn with uniform probability from $[-1, 1]$ they are
+% instead drawn from $[-S, S]$. 
+
+% We performed copmutational experiments to determine the minimum $S$ 
+% in order for non-zero (greater than 1e-6) polarization to emerge. Clearly if 
+% $S\leq0.5$ there can be no polarization because all distance are less than 1,
+% which means all weights will be positive, all
+% relationships will be friendly, and all agents will be drawn towards some 
+% consensus point. Our initial experiments (Figure \ref{fig:p_vs_s_for_k})
+% showed that average polarization was zero for $S < 0.75$ when $K=2$. 
+% The critical $S$ seems to change for different values of $K$. For example,
+% average polarization does not increase until $S=0.8$ for $K=3$. For other $K$,
+% polarization seems to increase to different degrees, with some noise, starting
+% between $S=0.85$ and $S=0.9$. It appears for $K=3$ that average polarization
+% decreases from $S=0.95$ to $S=1.0$. There is a large bump in average 
+% polarization at $S=0.9$ for $K=6$. Is this something real due to some special
+% configuration for these parameters, or is it noise? (Of course it is not a bug
+% in our code!)
+
+% To better understand the behavior we saw there, we ran a new set of simulations
+% with 100 trials for each parameter setting, and ran $S$ from 0.75 to 1.0 for
+% $K=2, 3, 4$ and from 0.85 to 1.0 for $K=5,6$, all with a smaller step size 
+% of 0.01 (Figure~\ref{fig:zoom_average}). Since the results still appear
+% noisy, we also plotted median polarization verus $S$ for the different $K$
+% (Figure~\ref{fig:zoom_median}). The median is still noisy. So, to get even
+% more detail, we visualized each trial result, and the average, individually
+% over the $S$ values we tested with 100 trials (Figure~\ref{fig:single_S_K}).
+% There is indeed a large amount of variation, which seems to increase as $S$
+% increases.
 
 
-\subsection{Sources of single-trial polarization}
+% % \begin{figure}[t!]
+% %   \centering
+% %     \includegraphics[width=0.75\textwidth]{Figures/p_v_s_k6_histograms.pdf}
+% %   \caption{Distribution of non-zero final polarization values for $K=6$.
+% %     Corresponds to the experiment run shown in Figure \ref{fig:zoomK6}.
+% %   }
+% %   \label{fig:K6-histograms}
+% % \end{figure}
 
 
-\subsection{Communication noise and polarization}
+% \subsection{Sources of single-trial polarization}
+
+
+% \subsection{Communication noise and polarization}
 
 
 
