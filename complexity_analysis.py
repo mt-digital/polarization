@@ -86,12 +86,13 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
             if hdf.attrs['K'] == K
         ]
         index = pd.MultiIndex.from_tuples(index)
-        index.set_names(['noise level', 'S'], inplace=True)
+        index.set_names(['Communication noise level', 'Maximum initial extremism'],
+                        inplace=True)
 
         df = pd.DataFrame(
             index=index, data=final_means, columns=['Average polarization']
         ).reset_index(
-        ).pivot('noise level', 'S', 'Average polarization')
+        ).pivot('Communication noise level', 'Maximum initial extremism', 'Average polarization')
 
         if pub:
 
@@ -101,7 +102,10 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
             else:
                 sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar=False)  # , vmax=1)
         else:
-            ax = sns.heatmap(df, cmap='YlGnBu_r')
+            ax = sns.heatmap(
+                df, cmap='YlGnBu_r',
+                cbar_kws={'label': 'Average polarization'}
+            )
 
         # Make noise level run from small to large.
         ax.invert_yaxis()
@@ -242,19 +246,19 @@ def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean,
         # plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
         #          lw=2, ms=8, alpha=0.65)
         plt.plot(x[plot_start:], y_vals[plot_start:], 'o-',
-                 label=r'$K={}$'.format(K), lw=2, ms=8, alpha=0.65)
+                 label=r'# Cult. feat.$={}$'.format(K), lw=3, ms=10, alpha=0.65)
 
     plt.legend(loc='upper left')
     if agg_fun == np.mean:
         plt.ylabel('Average polarization')
     elif agg_fun == np.median:
         plt.ylabel('Median polarization')
-    plt.xlabel('S')
+    plt.xlabel('Maximum initial extremism')
 
     if plot_start > 0:
         plt.xticks(range(n_hdfs_K)[:-plot_start], x[plot_start:])
     if lim_xticks:
-        plt.xticks(range(n_hdfs_max)[::2], xmax[::2])
+        plt.xticks(range(n_hdfs_max)[::5], xmax[::5])
 
     if save_path:
         plt.savefig(save_path)
@@ -312,9 +316,9 @@ def plot_single_S_K(data_dir, K, save_path=None, semilogy=False, **kwargs):
              label='Average', **kwargs)
 
     plt.ylabel('Polarization')
-    plt.xlabel('S')
+    plt.xlabel('Maximum initial extremism')
     plt.legend()
-    plt.title(r'$K={}$'.format(K))
+    plt.title(r'Number of relevant cultural features$={}$'.format(K))
 
     if save_path:
         plt.savefig(save_path)
@@ -360,11 +364,11 @@ def plot_single_K_experiment(data_dir, experiment, x=[1, 2, 3, 5, 10],
     means = [_final_mean(hdf, experiment=experiment)
              for hdf in hdfs_lim]
 
-    plt.plot(means, color=color, marker=None, label='Average')
+    plt.plot(means, color=color, marker=None, label='Average', **kwargs)
 
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best')
-    plt.xlabel('K')
+    plt.xlabel('Number of relevant cultural features')
     plt.ylabel('Polarization')
     plt.title('Average and trial polarization for {}'.format(experiment))
 
@@ -391,7 +395,12 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
 
     hdf_dict = _hdfs_dict(data_dir, 'K')
 
-    keys = ['connected caveman', 'random short-range', 'random any-range']
+    # keys = ['connected caveman', 'random short-range', 'random any-range']
+    keys = ['connected caveman', 'random any-range']
+    labels = {
+        'connected caveman': 'Connected caveman',
+        'random any-range': 'Randomized connected caveman'
+    }
     for key_idx, key in enumerate(keys):
 
         y_vals = np.zeros(xlen)
@@ -422,8 +431,8 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
                          color=colors[key_idx], label=key, capsize=5,
                          alpha=0.65)
         elif stddev == 'off':
-            plt.plot(range(len(x)), y_vals, marker='o', ms=8,
-                     color=colors[key_idx], label=key,
+            plt.plot(range(len(x)), y_vals, marker='o', ms=10, lw=3,
+                     color=colors[key_idx], label=labels[key],
                      alpha=0.65)
         else:
             plt.errorbar(range(len(x)), y_vals, yerr=yerr, marker='o', ms=8,
@@ -431,9 +440,9 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
                          alpha=0.65)
 
     plt.xticks(range(len(x)), [str(el) for el in x])
-    plt.legend(loc='best')
-    plt.xlabel('K')
-    plt.ylabel('Polarization')
+    plt.legend(loc='best', title='Network structure')
+    plt.xlabel('Number of relevant cultural features')
+    plt.ylabel('Average polarization')
 
     if full_ylim:
         plt.axhline(y=.25, color='grey', ls='--', lw=1)
@@ -514,7 +523,7 @@ def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
                 if hdf.attrs['noise_level'] == noise_level]
 
         title = r'$K={}$ and noise level $={}$'.format(K, noise_level)
-        xlabel = 'Maximum initial opinion magnitude'
+        xlabel = 'Maximum initial extremism'
         x_key = 'S'
 
     else:

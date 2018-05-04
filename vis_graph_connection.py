@@ -57,6 +57,6 @@ def vis_graph(n_caves, n_per_cave, l=2, lp=0.2, cave_adjust_angle=1.625*np.pi,
     nx.draw(gr, pos=pos_dict, node_color=node_colors)
 
     if save_path is not None:
-        plt.savefig(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
 
     return cc
