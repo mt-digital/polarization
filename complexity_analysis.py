@@ -378,7 +378,11 @@ def plot_single_K_experiment(data_dir, experiment, x=[1, 2, 3, 5, 10],
 
 
 def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
-                   save_path=None, **kwargs):
+                   save_path=None,
+                   experiments=['connected caveman',
+                                'random short-range',
+                                'random any-range'],
+                   **kwargs):
     '''
     This figure plots average final polarization against K, the number of
     opinion features.
@@ -396,13 +400,14 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
 
     hdf_dict = _hdfs_dict(data_dir, 'K')
 
-    # keys = ['connected caveman', 'random short-range', 'random any-range']
-    keys = ['connected caveman', 'random any-range']
+
+    # keys = ['connected caveman', 'random any-range']
     labels = {
         'connected caveman': 'Connected caveman',
-        'random any-range': 'Randomized connected caveman'
+        'random short-range': 'Random short-range ties',
+        'random any-range': 'Random long-range ties'
     }
-    for key_idx, key in enumerate(keys):
+    for key_idx, key in enumerate(experiments):
 
         y_vals = np.zeros(xlen)
         y_std = np.zeros(xlen)
@@ -442,7 +447,8 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
 
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best', title='Network structure')
-    plt.xlabel('Number of relevant cultural features')
+    # plt.xlabel('Number of relevant cultural features')
+    plt.xlabel('K')
     plt.ylabel('Average polarization')
 
     if full_ylim:
@@ -453,7 +459,7 @@ def plot_figure12b(data_dir, stddev=True, full_ylim=True, x=None,
         # plt.ylim(0, 1)
 
     if save_path:
-        plt.savefig(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
 
 
 class ExperimentRerun(Experiment):
@@ -704,7 +710,8 @@ def _plot_single_noise_example_Kgt2(
 
         parallel_coordinates(df, class_column='Cave Index', ax=ax)
 
-        ax.set_ylabel(r'$t={}$'.format(time_steps[idx]))
+        ax.set_ylabel(r'$t={}$'.format(time_steps[idx]), size=14)
+        ax.tick_params(axis='y', which='major', labelsize=10)
 
         ax.legend_.remove()
         ax.grid(False)
@@ -715,8 +722,9 @@ def _plot_single_noise_example_Kgt2(
     axes[0].set_title(
         r'$S={}$, $\sigma={}$;  Final Polarization: {:.3f}'.format(
             S, noise_level, final_polarization
-        )
+        ), size=16
     )
+    axes[-1].tick_params(axis='x', which='major', labelsize=10)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
