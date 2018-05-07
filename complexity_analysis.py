@@ -652,7 +652,7 @@ def _plot_single_noise_example_K2(
     fig.subplots_adjust(top=1, bottom=0)
 
     if save_path is not None:
-        plt.savefig(save_path)
+        plt.savefig(save_path, bbox_inches='tight')
 
 
 def _plot_single_noise_example_Kgt2(
@@ -676,7 +676,9 @@ def _plot_single_noise_example_Kgt2(
     n_subplots = len(time_steps)
 
     # Plotting n_subplots rows of parallel coordinates.
-    fig, axes = plt.subplots(n_subplots, 1, figsize=figsize)
+    fig, axes = plt.subplots(
+        n_subplots, 1, figsize=figsize, sharex=True, sharey=True
+    )
 
     criteria = dict(S=S, K=K)
     if noise_level is not None:
@@ -702,10 +704,12 @@ def _plot_single_noise_example_Kgt2(
 
         parallel_coordinates(df, class_column='Cave Index', ax=ax)
 
-        ax.set_ylabel(r'$t={}'.format(time_steps[idx]))
+        ax.set_ylabel(r'$t={}$'.format(time_steps[idx]))
 
         ax.legend_.remove()
         ax.grid(False)
+
+    fig.subplots_adjust(hspace=-4)
 
     final_polarization = hdf[experiment + '/polarization'][trial_idx, -1]
     axes[0].set_title(
@@ -713,3 +717,6 @@ def _plot_single_noise_example_Kgt2(
             S, noise_level, final_polarization
         )
     )
+
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches='tight')
