@@ -7,6 +7,7 @@ import seaborn as sns
 import warnings
 
 from glob import glob
+from pandas.plotting import parallel_coordinates
 
 from macy import Experiment
 
@@ -580,6 +581,34 @@ def plot_single_noise_example(data_dir, S=1.0, noise_level=None, trial_idx=0,
     Make a timeseries of 2D plots (K=2) of the evolution of agent opinions for
     different values of maximum initial opinion magnitude and noise level.
     '''
+    if K == 2:
+        _plot_single_noise_example_K2(
+            data_dir, S, noise_level, trial_idx,
+            K, time_steps,
+            y_title,
+            experiment,
+            save_path,
+            **kwargs
+        )
+    else:
+        _plot_single_noise_example_Kgt2(
+            data_dir, S, noise_level, trial_idx,
+            K, time_steps,
+            y_title,
+            experiment,
+            save_path,
+            **kwargs
+        )
+
+
+def _plot_single_noise_example_K2(
+        data_dir, S=1.0, noise_level=None, trial_idx=0,
+        K=2, time_steps=[0, 1000, 5000, 10000],
+        y_title=.715,
+        experiment='random any-range',
+        save_path=None,
+        **kwargs):
+
     if 'figsize' in kwargs:
         figsize = kwargs['figsize']
         del kwargs['figsize']
@@ -624,3 +653,63 @@ def plot_single_noise_example(data_dir, S=1.0, noise_level=None, trial_idx=0,
 
     if save_path is not None:
         plt.savefig(save_path)
+
+
+def _plot_single_noise_example_Kgt2(
+        data_dir, S=1.0, noise_level=None, trial_idx=0,
+        K=2, time_steps=[0, 1000, 5000, 10000],
+        y_title=.715,
+        experiment='random any-range',
+        save_path=None,
+        n_per_cave=5,
+        **kwargs):
+
+    if 'figsize' in kwargs:
+        figsize = kwargs['figsize']
+        del kwargs['figsize']
+
+    else:
+        figsize = (7, 10)
+
+    coords_address = experiment + '/coords'
+
+    n_subplots = len(time_steps)
+
+    # Plotting n_subplots rows of parallel coordinates.
+    fig, axes = plt.subplots(n_subplots, 1, figsize=figsize)
+
+    criteria = dict(S=S, K=K)
+    if noise_level is not None:
+        criteria.update(dict(noise_level=noise_level))
+
+    hdf = _lookup_hdf(data_dir, **criteria)
+    coords_series = hdf[coords_address][trial_idx]
+
+    n_iter_sync = hdf.attrs['n_iter_sync']
+    snapshot_idxs = [tstep // n_iter_sync for tstep in time_steps]
+
+    n_agents = len(coords_series[0, :, 0])
+    cave_indexes = [(i // n_per_cave) for i in range(n_agents)]
+
+    for idx, snap_idx in enumerate(snapshot_idxs):
+
+        ax = axes[idx]
+        df = pd.DataFrame({
+            r'$k_{}$'.format(i): coords_series[snap_idx, :, i]
+            for i in range(K)
+        })
+        df['Cave Index'] = cave_indexes
+
+        parallel_coordinates(df, class_column='Cave Index', ax=ax)
+
+        ax.set_ylabel(r'$t={}'.format(time_steps[idx]))
+
+        ax.legend_.remove()
+        ax.grid(False)
+
+    final_polarization = hdf[experiment + '/polarization'][trial_idx, -1]
+    axes[0].set_title(
+        r'$S={}$, $\sigma={}$;  Final Polarization: {:.3f}'.format(
+            S, noise_level, final_polarization
+        )
+    )
