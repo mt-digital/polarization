@@ -716,6 +716,8 @@ def _plot_single_noise_example_Kgt2(
         ax.legend_.remove()
         ax.grid(False)
 
+        ax.set_ylim(-1.1, 1.1)
+
     fig.subplots_adjust(hspace=-4)
 
     final_polarization = hdf[experiment + '/polarization'][trial_idx, -1]
