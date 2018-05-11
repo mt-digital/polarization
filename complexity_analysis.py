@@ -144,6 +144,106 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
         hdf.close()
 
 
+def average_distance_heatmap(data_dir, Ks=[2, 3, 4, 5], save_path=None,
+                         pub=False, noise_lim=0.21, **kwargs):
+
+    hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
+    hdfs = [hdf for hdf in hdfs if hdf.attrs['noise_level'] < noise_lim]
+
+    if pub:
+        fig, axes = plt.subplots(2, 2, figsize=(7, 9))
+        cbar_ax = fig.add_axes([1.05, 0.22, 0.05, 0.55])
+        cbar_ax.set_title('Average distance from center')
+
+    for K_idx, K in enumerate(Ks):
+
+        if 'figsize' in kwargs:
+            plt.figure(figsize=kwargs['figsize'])
+        else:
+            plt.figure()
+
+        # Limit hdfs of interest to those of the K of current interest.
+        coord_addr = 'random any-range/final coords'
+
+        average_distances = [
+            _average_final_distance(hdf[coord_addr]) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+
+        # Use noise_level and S as index to force uniqueness.
+        index = [
+            (hdf.attrs['noise_level'], hdf.attrs['S']) for hdf in hdfs
+            if hdf.attrs['K'] == K
+        ]
+        index = pd.MultiIndex.from_tuples(index)
+        index.set_names(['Communication noise level', 'Maximum initial extremism'],
+                        inplace=True)
+
+        df = pd.DataFrame(
+            index=index, data=average_distances, columns=['Average distance']
+        ).reset_index(
+        ).pivot('Communication noise level', 'Maximum initial extremism', 'Average distance')
+
+        if pub:
+
+            ax = axes[K_idx // 2, K_idx % 2]
+            if K_idx == 3:
+                sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar_ax=cbar_ax)
+            else:
+                sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar=False)
+
+            if K_idx % 2 == 1:
+                ax.set_ylabel('')
+        else:
+            ax = sns.heatmap(
+                df, cmap='YlGnBu_r',
+                cbar_kws={'label': 'Average distance'}
+            )
+
+        # Make noise level run from small to large.
+        ax.invert_yaxis()
+
+        ax.set_title(r'$K={}$'.format(K))
+
+        # Force the heatmap to be square.
+        x0, x1 = ax.get_xlim()
+        y0, y1 = ax.get_ylim()
+        ax.set_aspect(0.5 * (x1 - x0)/(y1 - y0))
+
+        yticklabels = ['{:.2f}'.format(f)
+                       if idx % 2 == 0
+                       else ''
+                       for idx, f in enumerate(np.arange(0.02, noise_lim + 0.01, 0.02))]
+
+        ax.set_yticklabels(yticklabels, {'verticalalignment': 'center'})
+
+        xticklabels = ['{:.2f}'.format(f)
+                       if idx % 2 == 0
+                       else ''
+                       for idx, f in enumerate(np.arange(0.5, 1.01, 0.05))]
+
+        ax.set_xticklabels(xticklabels, rotation=0)
+
+        if not pub and save_path is not None:
+            plt.savefig(save_path + '_K={}.pdf'.format(K))
+            plt.close()
+
+    if pub:
+        fig.subplots_adjust(right=1.0, hspace=-0.2)  # , wspace=0.8)
+        fig.savefig('ave_dist_heatmaps.pdf', bbox_inches='tight')
+
+    for hdf in hdfs:
+        hdf.close()
+
+    # return fig, axes
+
+
+def _average_final_distance(final_coords):
+    K = len(final_coords[0, 0])
+    # Calculate average FM distance across final coordinates.
+    return (1.0 / K) * np.linalg.norm(final_coords, ord=1, axis=-1).mean()
+
+
 def _hdfs_dict(hdfs_dir, key):
     '''
     HDFs from different runs are being saved with a UUID-based filename instead
