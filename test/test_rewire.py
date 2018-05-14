@@ -69,7 +69,7 @@ class TestRewiring(unittest.TestCase):
         for _ in range(20):
             for cxn_prob in np.arange(0.1, 0.5, 0.1):
 
-                net = Network(deepcopy(cc))
+                net = Network(initial_graph=deepcopy(cc))
                 net.rewire_edges(cxn_prob)
 
                 num_rand = [sum(1 for _ in nx.all_neighbors(net.graph, n))
@@ -81,7 +81,6 @@ class TestRewiring(unittest.TestCase):
                 )
                 eq_(num_base, num_rand, err_msg)
 
-                # Check that at least some edges were changed. TODO check exact N
                 num_changed = len(
                     set(cc.edges()).difference(net.graph.edges())
                 )

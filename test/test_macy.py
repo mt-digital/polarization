@@ -30,9 +30,10 @@ class TestBasicCalculations(unittest.TestCase):
         self.a1_3.opinions = np.array([-1.0, 0.5, -.7])
         self.a2_3.opinions = np.array([-.5, .2, .8])
 
-        # self.test_network = _make_test_network(2)
-
     def test_calculate_weight(self):
+        '''
+        Weights correctly calcuated; F&M (2011) Equation 1
+        '''
 
         num = 0.5 + 0.3
         expected = 1 - (num/2.0)
@@ -43,6 +44,9 @@ class TestBasicCalculations(unittest.TestCase):
         assert calculate_weight(self.a1_3, self.a2_3) == expected
 
     def test_raw_state_update(self):
+        '''
+        Correct "raw" update to opinion, F&M (2011) Equation 2
+        '''
 
         num_neighbors_fac = 1.0 / (2.0 * 3)
         w_12 = calculate_weight(self.a1_2, self.a2_2)
@@ -67,6 +71,9 @@ class TestBasicCalculations(unittest.TestCase):
         )
 
     def test_scaled_state_update(self):
+        '''
+        Correct calc of opinion update according to F&M (2011) Equation 2a
+        '''
         neighbors = [self.a2_2, self.a3_2, self.a4_2]
 
         w_12 = calculate_weight(self.a1_2, self.a2_2)
@@ -96,6 +103,9 @@ class TestBasicCalculations(unittest.TestCase):
             'calculated: {}\nexpected: {}'.format(calculated, expected)
 
     def test_polarization(self):
+        '''
+        Polarization on graph equals expected manual calculation.
+        '''
 
         d = np.zeros((4, 4))
 
