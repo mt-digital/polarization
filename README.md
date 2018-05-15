@@ -18,11 +18,53 @@ Our focus here is on the software that powers our results, and not the social
 theory. Please see Flache and Macy's 2011 paper in the Journal of Mathematical
 Sociology for more information (https://www.tandfonline.com/doi/abs/10.1080/0022250X.2010.532261). 
 
-## Our experiments
+## Experiments
 
 The experiment class we mainly used was the `BoxedCaveExperiment`, which got
 its name originally because agent opinions were boxed in between a value of
--S and S, where |S| ≤ 1. 
+-S and S, where |S| ≤ 1. This experiment is initialized with a conected caveman
+network structure with `n_caves` and `n_per_cave` agents in each cave. 
+Each node in the network is an `Agent`. The Agent class is
+simple with just two attributes, `opinions` and `weights`. 
+
+The minimal example below
+shows how to initialize a new `BoxedCaveExperiment` for K=2, run a few iterations of
+agent updates, and plot the agent coordinates. See `scripts/runner.py` for
+how this is used in our large-scale experiments. The `sge_scripts/` directory
+contains job submission scripts for use on the Sun Grid Engine cluster we have
+on campus. It may just work with other queue management systems.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+from experiments.within_box import BoxedCavesExperiment
+
+n_caves = 20
+n_per_cave = 5
+S = 0.5
+bce = BoxedCavesExperiment(n_caves, n_per_cave, S, K=2)
+
+bce.iterate(5)
+
+init_coords = np.array(bce.history['coords'][0])
+final_coords = np.array(bce.history['final_coords'])
+
+xi = init_coords[:, 0]; yi = init_coords[:, 1]
+xf = final_coords[:, 0]; yf = final_coords[:, 1]
+
+plt.plot(xi, yi, 'o', label='Initial opinions')
+plt.plot(xf, yf, 'o', label='Opinions after five iterations')
+lim = [-.55, .55]; plt.xlim(lim); plt.ylim(lim)
+plt.axis('equal')
+plt.legend()
+```
+
+This script can be run via `python simple_readme.py`. 
+You should get an image like the one below
+
+![Simple experiment trial result](simple_experiment.pdf)
+
 
 ## Advanced usage/future work
 
