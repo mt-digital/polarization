@@ -63,8 +63,7 @@ plt.legend()
 This script can be run via `python simple_readme.py`. 
 You should get an image like the one below
 
-![Simple experiment trial result](simple_experiment.png)
-
+<img src="https://github.com/mt-digital/polarization/raw/master/simple_experiment.png" width="450">
 
 ## Advanced usage/future work
 
