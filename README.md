@@ -18,6 +18,28 @@ Our focus here is on the software that powers our results, and not the social
 theory. Please see Flache and Macy's 2011 paper in the Journal of Mathematical
 Sociology for more information (https://www.tandfonline.com/doi/abs/10.1080/0022250X.2010.532261). 
 
+## Installation
+
+The best way to install this package is to do the following. First, clone
+the repository. Then in the root repository directory, create and activate a
+new virtual environment. To install the package and its dependencies, run
+
+```bash
+pip install --editable .
+```
+
+This will also 
+
+### Unit tests
+
+To run unittests, run 
+
+```bash
+python setup.py nosetests
+```
+
+After you've run that once, you can just run `nosetests` to run the unit tests.
+
 ## Experiments
 
 The experiment class we mainly used was the `BoxedCaveExperiment`, which got
@@ -65,7 +87,33 @@ You should get an image like the one below
 
 <img src="https://github.com/mt-digital/polarization/raw/master/simple_experiment.png" width="450">
 
+## Command-line interface
 
+The CLI is called `polexp`, as in "polarization experiment". The primary 
+subcommand of `polexp` is `complexity_experiment`. You can get the help for
+this by running
+
+```bash
+polexp complexity_experiment --help
+```
+
+which will print
+
+```
+Usage: polexp complexity_experiment [OPTIONS] S K NOISE_LEVEL OUTPUT_DIR
+
+  Run n_trials for a given maximum initial opinion feature S and cultural
+  complexity K.
+
+Options:
+  --distance_metric TEXT
+  --n_trials INTEGER
+  --n_iterations INTEGER
+  --n_iter_sync INTEGER
+  --help                  Show this message and exit.
+```
+
+See the scripts in `sge_scripts` for how to use this CLI on a computing cluster.
 
 ## Data model
 
