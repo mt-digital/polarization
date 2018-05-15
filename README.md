@@ -63,7 +63,7 @@ plt.legend()
 This script can be run via `python simple_readme.py`. 
 You should get an image like the one below
 
-![Simple experiment trial result](simple_experiment.pdf)
+![Simple experiment trial result](simple_experiment.png)
 
 
 ## Advanced usage/future work
