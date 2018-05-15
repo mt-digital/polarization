@@ -28,7 +28,23 @@ new virtual environment. To install the package and its dependencies, run
 pip install --editable .
 ```
 
-This will also 
+This will also make available the command-line interface, `polexp`. To confirm everything went
+OK, you can run `polexp` in the console, and you should see
+
+```
+Usage: polexp [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  complexity_experiment  Run n_trials for a given maximum initial...
+  reproduce_fig11        Create a set of HDF files corresponding to...
+  reproduce_fig12        Create a set of HDF files corresponding to...
+  rerun_experiment       Re-run an experiment using an hdf from...
+```
+
+More info on the CLI is below.
 
 ### Unit tests
 
