@@ -63,32 +63,8 @@ plt.legend()
 This script can be run via `python simple_readme.py`. 
 You should get an image like the one below
 
-![Simple experiment trial result](simple_experiment.png)
+<img src="https://github.com/mt-digital/polarization/raw/master/simple_experiment.png" width="450">
 
-
-## Advanced usage/future work
-
-Here we demonstrate some advanced usage. Some advanced usage is straight
-forward, but some of the advanced usage reveals some
-of the technical debt amassed in the process of getting interesting
-scientific results. Nonetheless, it is possible to use the codebase to do more than
-model opinion dynamics on randomized connected caveman networks. 
-
-First we add some time-varying communication noise to 
-
-To run custom computational experiments of opinion dynamics, 
-begin with the `Experiment` class:
-
-```python
-from macy import Experiment
-
-# Default experiment gives a (n, k) connected caveman graph
-# with n caves and k agents/nodes per cave. Agents begin with
-# opinions drawn randomly, each opinion feature drawn from U(-1, 1).
-ex = Experiment()
-```
-
-Experiments are not as self-contained as they might be.
 
 
 ## Data model
