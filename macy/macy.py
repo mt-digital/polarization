@@ -35,15 +35,8 @@ class Network(nx.Graph):
         self.graph = initial_graph
         self.distance_metric = distance_metric
 
-        # all pairs of vertices
         nodes = list(self.graph.nodes())
         n_nodes = len(nodes)
-        # self.possible_edges = [
-        #     (nodes[i], nodes[j])
-        #     for i in range(n_nodes)
-        #     for j in range(i, n_nodes)
-        #     if i != j
-        # ]
 
         self.n_nodes = n_nodes
 
@@ -208,7 +201,7 @@ class Experiment:
     we are just investigating randomized connected caveman graphs; no need
     to add unnecessary complexity.
     '''
-    def __init__(self, n_caves, n_per_cave, n_iter_sync=1000,
+    def __init__(self, n_caves=20, n_per_cave=5, n_iter_sync=1000,
                  distance_metric='fm2011', outcome_metric='fm2011'):
         # Initialize graph labelled by integers and randomize.
         # network = Network(nx.connected_caveman_graph(n_caves, n_per_cave))
@@ -292,63 +285,6 @@ class Experiment:
 
         self.history['final coords'] = \
             [n.opinions for n in self.network.graph.nodes()]
-
-    def make_opinion_movie(self, movie_name=None, fps=15, dpi=150):
-        '''
-        Arguments:
-            movie_name (str): becomes directory for video and components
-            resolution (int):
-        '''
-        import matplotlib.pyplot as plt
-        import matplotlib.animation as anim
-        import seaborn as sns
-
-        if movie_name is None:
-            movie_name = datetime.now().isoformat() + '.mp4'
-
-        ffmpeg_writer = anim.writers['ffmpeg']
-        metadata = dict(
-            title='Flache & Macy Animation ' + movie_name,
-            artist='Matthew A. Turner',
-            comment='See https://github.com/mt-digital/polarization for more info'
-        )
-
-        writer = ffmpeg_writer(fps=fps, metadata=metadata)
-
-        fig = plt.figure()
-        plt.xlim(-1.1, 1.1)
-        plt.ylim(-1.1, 1.1)
-        ax = fig.add_subplot(111)
-
-        cave_plots = []
-        colors = sns.color_palette('husl', self.n_caves)
-
-        for i in range(self.n_caves):
-            l, = plt.plot([], [], 'o', lw=0,
-                          color=colors[i], ms=10, alpha=0.85)
-            cave_plots.append(l)
-
-        ax.set_aspect('equal')
-
-        with writer.saving(fig, movie_name, dpi):
-            pol_hist = self.history['polarization']
-            coords_hist = self.history['coords']
-            for i, pol in pol_hist:
-
-                coords = coords_hist[i]
-                plt.title('Polarization: {:.2f}\nIteration: {}'.format(
-                        pol, i
-                    )
-                )
-                x = [el[0] for el in coords]
-                y = [el[1] for el in coords]
-                l.set_data(x, y)
-                writer.grab_frame()
-
-                # cave_opinions = get_cave_opinions_xy(hist[i]['opinions'])
-
-                # for idx, l in enumerate(cave_plots):
-                #     x, y = cave_opinions[idx]
 
 
 def get_opinions_xy(opinions):

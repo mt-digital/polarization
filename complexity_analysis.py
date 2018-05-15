@@ -87,13 +87,13 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
             if hdf.attrs['K'] == K
         ]
         index = pd.MultiIndex.from_tuples(index)
-        index.set_names(['Communication noise level', 'Maximum initial extremism'],
+        index.set_names(['noise level', 'S'],
                         inplace=True)
 
         df = pd.DataFrame(
             index=index, data=final_means, columns=['Average polarization']
         ).reset_index(
-        ).pivot('Communication noise level', 'Maximum initial extremism', 'Average polarization')
+        ).pivot('noise level', 'S', 'Average polarization')
 
         if pub:
 
@@ -125,7 +125,7 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
 
         ax.set_yticklabels(yticklabels, {'verticalalignment': 'center'})
 
-        xticklabels = ['{:.2f}'.format(f)
+        xticklabels = ['{:.1f}'.format(f)
                        if idx % 2 == 0
                        else ''
                        for idx, f in enumerate(np.arange(0.5, 1.01, 0.05))]
@@ -176,13 +176,13 @@ def average_distance_heatmap(data_dir, Ks=[2, 3, 4, 5], save_path=None,
             if hdf.attrs['K'] == K
         ]
         index = pd.MultiIndex.from_tuples(index)
-        index.set_names(['Communication noise level', 'Maximum initial extremism'],
+        index.set_names(['noise level', 'S'],
                         inplace=True)
 
         df = pd.DataFrame(
             index=index, data=average_distances, columns=['Average distance']
         ).reset_index(
-        ).pivot('Communication noise level', 'Maximum initial extremism', 'Average distance')
+        ).pivot('noise level', 'S', 'Average distance')
 
         if pub:
 
@@ -213,11 +213,11 @@ def average_distance_heatmap(data_dir, Ks=[2, 3, 4, 5], save_path=None,
         yticklabels = ['{:.2f}'.format(f)
                        if idx % 2 == 0
                        else ''
-                       for idx, f in enumerate(np.arange(0.02, noise_lim + 0.01, 0.02))]
+                       for idx, f in enumerate(np.arange(0.00, noise_lim + 0.01, 0.02))]
 
         ax.set_yticklabels(yticklabels, {'verticalalignment': 'center'})
 
-        xticklabels = ['{:.2f}'.format(f)
+        xticklabels = ['{:.1f}'.format(f)
                        if idx % 2 == 0
                        else ''
                        for idx, f in enumerate(np.arange(0.5, 1.01, 0.05))]
@@ -347,7 +347,7 @@ def plot_S_K_experiment(data_dirs, plot_start=0, agg_fun=np.mean,
         # plt.plot(x[3:], y_vals[3:], 'o-', label=r'$K={}$'.format(K),
         #          lw=2, ms=8, alpha=0.65)
         plt.plot(x[plot_start:], y_vals[plot_start:], 'o-',
-                 label=r'# Cult. feat.$={}$'.format(K), lw=3, ms=10, alpha=0.65)
+                 label=r'$K={}$'.format(K), **kwargs)
 
     plt.legend(loc='upper left')
     if agg_fun == np.mean:
@@ -416,10 +416,13 @@ def plot_single_S_K(data_dir, K, save_path=None, semilogy=False, **kwargs):
     plot_fun(S_vals, means, color=color, marker=None,
              label='Average', **kwargs)
 
+    if K > 4:
+        plt.xticks(np.arange(.85, 1.01, .05))
+
     plt.ylabel('Polarization')
-    plt.xlabel('Maximum initial extremism')
+    plt.xlabel('S')
     plt.legend()
-    plt.title(r'Number of relevant cultural features$={}$'.format(K))
+    plt.title(r'$K={}$'.format(K))
 
     if save_path:
         plt.savefig(save_path)
@@ -469,8 +472,11 @@ def plot_single_K_experiment(data_dir, experiment, x=[1, 2, 3, 5, 10],
 
     plt.xticks(range(len(x)), [str(el) for el in x])
     plt.legend(loc='best')
-    plt.xlabel('Number of relevant cultural features')
+    # plt.xlabel('Number of relevant cultural features')
+    plt.xlabel('K')
     plt.ylabel('Polarization')
+    if experiment == 'random any-range':
+        experiment = 'random long-range'
     plt.title('Average and trial polarization for {}'.format(experiment))
 
     if save_path:
@@ -666,7 +672,7 @@ def plot_single_noise_param(data_dir, K, save_path=None, **kwargs):
 
     plt.ylabel('Polarization')
     plt.xlabel(xlabel)
-    plt.xticks(x_vals)
+    plt.xticks(x_vals[::2])
     plt.title(title)
     plt.legend()
 
@@ -740,19 +746,22 @@ def _plot_single_noise_example_K2(
         snap_idx = snapshot_idxs[i]
         coords = coords_series[snap_idx]
 
+        axes[i].axvline(0, color='lightgrey', lw=1, alpha=1)
+        axes[i].axhline(0, color='lightgrey', lw=1, alpha=1)
+
         axes[i].plot(coords[:, 0], coords[:, 1], 'o')
-        axes[i].set_xlim(-1, 1)
-        axes[i].set_ylim(-1, 1)
+        axes[i].set_xlim(-1.1, 1.1)
+        axes[i].set_ylim(-1.1, 1.1)
         axes[i].set_aspect('equal')
         axes[i].set_title(r'$t={}$'.format(time_steps[i]))
 
-        axes[i].grid()
+        # axes[i].grid()
 
     final_polarization = hdf[experiment + '/polarization'][trial_idx, -1]
 
     fig.suptitle(r'$S={}$, $\sigma={}$;  Final polarization: {:.3f}'.format(
             S, noise_level, final_polarization
-        ), y=y_title
+        ), y=y_title, size=16
     )
 
     fig.subplots_adjust(top=1, bottom=0)
@@ -811,7 +820,7 @@ def _plot_single_noise_example_Kgt2(
         parallel_coordinates(df, class_column='Cave Index', ax=ax)
 
         ax.set_ylabel(r'$t={}$'.format(time_steps[idx]), size=14)
-        ax.tick_params(axis='y', which='major', labelsize=10)
+        ax.tick_params(axis='y', which='major', labelsize=14)
 
         ax.legend_.remove()
         ax.grid(False)
@@ -824,9 +833,9 @@ def _plot_single_noise_example_Kgt2(
     axes[0].set_title(
         r'$S={}$, $\sigma={}$;  Final Polarization: {:.3f}'.format(
             S, noise_level, final_polarization
-        ), size=16
+        ), size=14
     )
-    axes[-1].tick_params(axis='x', which='major', labelsize=10)
+    axes[-1].tick_params(axis='x', which='major', labelsize=14)
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
