@@ -9,7 +9,7 @@ import warnings
 from glob import glob
 from pandas.plotting import parallel_coordinates
 
-from macy import Experiment
+from polarization import Experiment
 
 
 def _all_final_polarizations(hdf, experiment='random any-range'):
@@ -145,7 +145,7 @@ def plot_p_v_noise_and_k(data_dir, Ks=[2, 3, 4, 5], save_path=None,
 
 
 def average_distance_heatmap(data_dir, Ks=[2, 3, 4, 5], save_path=None,
-                         pub=False, noise_lim=0.21, **kwargs):
+                             pub=False, noise_lim=0.21, **kwargs):
 
     hdfs = [h5py.File(f, 'r') for f in glob(os.path.join(data_dir, '*'))]
     hdfs = [hdf for hdf in hdfs if hdf.attrs['noise_level'] < noise_lim]
@@ -192,8 +192,8 @@ def average_distance_heatmap(data_dir, Ks=[2, 3, 4, 5], save_path=None,
             else:
                 sns.heatmap(df, cmap='YlGnBu_r', ax=ax, cbar=False)
 
-            if K_idx % 2 == 1:
-                ax.set_ylabel('')
+            # if K_idx % 2 == 1:
+            #     ax.set_ylabel('')
         else:
             ax = sns.heatmap(
                 df, cmap='YlGnBu_r',

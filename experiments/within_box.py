@@ -1,6 +1,6 @@
 import numpy as np
 
-from macy import Experiment
+from polarization import Experiment
 
 
 class BoxedCavesExperiment(Experiment):

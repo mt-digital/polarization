@@ -11,7 +11,7 @@ import unittest
 from copy import deepcopy
 from nose.tools import eq_, ok_
 
-from macy import Network, Experiment
+from polarization import Network, Experiment
 
 
 def _count_seq(seq):

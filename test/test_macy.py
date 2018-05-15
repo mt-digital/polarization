@@ -2,7 +2,7 @@ import networkx as nx
 import numpy as np
 import unittest
 
-from macy import (
+from polarization import (
     Agent, calculate_weight,
     raw_opinion_update_vec, opinion_update_vec, polarization
 )
