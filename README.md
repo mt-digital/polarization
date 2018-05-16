@@ -15,7 +15,8 @@ model) in Python and began experimenting. A year later we are submitting
 this work for review.
 
 Our focus here is on the software that powers our results, and not the social
-theory. Please see Flache and Macy's 2011 paper in the Journal of Mathematical
+theory. Please see our paper on the arXiv (coming soon) and
+Flache and Macy's 2011 paper in the Journal of Mathematical
 Sociology for more information (https://www.tandfonline.com/doi/abs/10.1080/0022250X.2010.532261). 
 
 ## Installation
@@ -27,6 +28,13 @@ new virtual environment. To install the package and its dependencies, run
 ```bash
 pip install --editable .
 ```
+
+You can now [download the output
+data](http://mt.digital/static/data/polarization_v0.1-data.tar) to the root
+project directory, untar it, and run run the 
+[accompanying Jupyter notebook](https://github.com/mt-digital/polarization/blob/master/notebooks/Complexity%20Special%20Issue%20Supplement.ipynb).
+The tarfile is ~14GB, and this is even using built-in HDF5 compression, but
+it only takes about ten minutes on a good connection.
 
 This will also make available the command-line interface, `polexp`. To confirm everything went
 OK, you can run `polexp` in the console, and you should see
