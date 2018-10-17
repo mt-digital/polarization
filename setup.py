@@ -13,7 +13,7 @@ install_requires = [
     'kiwisolver==1.0.1',
     'matplotlib==2.2.0',
     'networkx==1.11',
-    'numpy==1.12.1',
+    'numpy>=1.13.1',
     'packaging==16.8',
     'pandas==0.22.0',
     'parso==0.1.1',
