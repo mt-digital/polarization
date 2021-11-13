@@ -29,9 +29,8 @@ new virtual environment. To install the package and its dependencies, run
 pip install --editable .
 ```
 
-You can now [download the output
-data](http://mt.digital/static/data/polarization_v0.1-data.tar) to the root
-project directory, untar it, and run run the 
+You used to be able to download the output, but the files are now missing. I will be re-generating and
+uploading the data soon, and then you will be able to download the data and run run the 
 [accompanying Jupyter notebook](https://github.com/mt-digital/polarization/blob/master/notebooks/Complexity%20Special%20Issue%20Supplement.ipynb).
 The tarfile is ~14GB, and this is even using built-in HDF5 compression, but
 it only takes about ten minutes on a good connection.
